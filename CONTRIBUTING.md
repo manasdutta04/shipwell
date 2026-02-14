@@ -38,7 +38,7 @@ Turborepo handles this automatically, but the dependency graph is:
 
 ```
 @shipwell/core → @shipwell/web
-@shipwell/core → @shipwell/cli
+@shipwell/core → @shipwellapp/cli
 ```
 
 Always build core first if making changes to it:

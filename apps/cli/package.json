@@ -1,23 +1,58 @@
 {
-  "name": "@shipwell/cli",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@shipwellapp/cli",
+  "version": "0.1.2",
+  "description": "Full Codebase Autopilot — deep cross-file analysis powered by Claude",
   "type": "module",
   "bin": {
     "shipwell": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "dev": "tsc --watch"
   },
+  "keywords": [
+    "claude",
+    "ai",
+    "codebase",
+    "analysis",
+    "security",
+    "audit",
+    "migration",
+    "refactor",
+    "documentation",
+    "anthropic",
+    "opus",
+    "cli"
+  ],
+  "author": "Manas Dutta",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manasdutta04/shipwell.git",
+    "directory": "apps/cli"
+  },
+  "homepage": "https://shipwell.app",
+  "bugs": {
+    "url": "https://github.com/manasdutta04/shipwell/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "@shipwell/core": "workspace:*",
+    "@anthropic-ai/sdk": "^0.39.0",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
-    "ora": "^8.2.0"
+    "glob": "^11.0.0",
+    "ignore": "^7.0.0",
+    "ora": "^8.2.0",
+    "simple-git": "^3.27.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.7.0"
   }
 }

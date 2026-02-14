@@ -1,4 +1,4 @@
-# @shipwell/cli
+# @shipwellapp/cli
 
 Command-line interface for Shipwell. Run deep codebase analysis from your terminal.
 
