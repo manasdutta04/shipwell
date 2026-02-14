@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   GitBranch, FolderOpen, Package, Scan, Shield, BarChart3,
@@ -25,18 +25,103 @@ const iconColor = {
   read: "text-cyan-400",
   bundle: "text-purple-400",
   analyze: "text-accent",
-  finding: "text-yellow-400",
-  metric: "text-green-400",
+  finding: "text-amber-400",
+  metric: "text-emerald-400",
   done: "text-success",
   error: "text-danger",
 };
 
+const bgColor = {
+  clone: "bg-blue-500/8",
+  read: "bg-cyan-500/8",
+  bundle: "bg-purple-500/8",
+  analyze: "bg-accent/8",
+  finding: "bg-amber-500/8",
+  metric: "bg-emerald-500/8",
+  done: "bg-success/8",
+  error: "bg-danger/8",
+};
+
+const verbs = [
+  "Thinking",
+  "Reading",
+  "Scanning",
+  "Tracing",
+  "Mapping",
+  "Crafting",
+  "Analyzing",
+  "Inspecting",
+  "Resolving",
+  "Reasoning",
+];
+
+function formatTokens(chars: number): string {
+  const tokens = Math.round(chars / 3.5);
+  if (tokens >= 1000) {
+    return `${(tokens / 1000).toFixed(1)}k`;
+  }
+  return `${tokens}`;
+}
+
+function formatTime(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s}s`;
+}
+
+function ThinkingLine({ startedAt, tokenChars }: { startedAt: number; tokenChars: number }) {
+  const [verbIndex, setVerbIndex] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVerbIndex((prev) => (prev + 1) % verbs.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex items-center gap-2.5 py-1.5 px-2 -mx-2"
+    >
+      <span className="thinking-sparkle text-accent text-[14px]">✶</span>
+      <span className="text-[13px] text-text inline-flex items-center gap-0">
+        <span className="thinking-fade" key={verbIndex}>{verbs[verbIndex]}</span>
+        <span className="thinking-dots text-text ml-px">
+          <span className="dot dot-1">.</span>
+          <span className="dot dot-2">.</span>
+          <span className="dot dot-3">.</span>
+        </span>
+      </span>
+      <span className="text-[11px] text-text-dim tabular-nums">
+        ({formatTime(elapsed)}
+        {tokenChars > 0 && <> · <span className="text-accent/70">↓</span> {formatTokens(tokenChars)} tokens</>}
+        )
+      </span>
+    </motion.div>
+  );
+}
+
 export function ActivityLog({
   activity,
   isRunning,
+  startedAt,
+  tokenChars,
 }: {
   activity: ActivityEntry[];
   isRunning: boolean;
+  startedAt?: number;
+  tokenChars?: number;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -46,60 +131,82 @@ export function ActivityLog({
 
   if (activity.length === 0) return null;
 
+  const lastIndex = activity.length - 1;
+
   return (
     <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-border flex items-center gap-2">
+      {/* Header */}
+      <div className="px-4 py-2.5 border-b border-border flex items-center gap-2.5">
         {isRunning ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
+          <div className="relative flex items-center justify-center w-4 h-4">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-accent/30 animate-ping" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+          </div>
         ) : (
-          <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+          <CheckCircle2 className="w-4 h-4 text-success" />
         )}
-        <span className="text-xs font-medium text-text-muted">Activity</span>
-        <span className="text-xs text-text-dim ml-auto">{activity.length} steps</span>
+        <span className="text-[13px] font-medium text-text-muted">
+          {isRunning ? "Analyzing..." : "Analysis Complete"}
+        </span>
+        <span className="text-[11px] text-text-dim ml-auto tabular-nums">{activity.length} steps</span>
       </div>
-      <div className="max-h-[240px] overflow-y-auto px-3 py-2 space-y-0.5">
-        {activity.map((entry, i) => {
-          const Icon = iconMap[entry.icon];
-          return (
-            <motion.div
-              key={entry.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex items-start gap-2.5 py-1 group"
-            >
-              {/* Timeline line + icon */}
-              <div className="relative flex flex-col items-center">
+
+      {/* Timeline */}
+      <div className="max-h-[260px] overflow-y-auto px-4 py-3">
+        <div className="space-y-1">
+          {activity.map((entry, i) => {
+            const Icon = iconMap[entry.icon];
+            const isLast = i === lastIndex;
+            const showShimmer = isLast && isRunning;
+            return (
+              <motion.div
+                key={entry.id}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.15 }}
+                className={clsx(
+                  "flex items-center gap-3 py-1 px-2 -mx-2 rounded-lg relative overflow-hidden",
+                  showShimmer && "shimmer-row"
+                )}
+              >
+                {showShimmer && (
+                  <div className="absolute inset-0 shimmer-overlay rounded-lg" />
+                )}
+
                 <div className={clsx(
-                  "w-5 h-5 rounded flex items-center justify-center shrink-0",
-                  !entry.done && !["finding", "metric", "done", "error"].includes(entry.icon)
-                    ? "bg-accent/10"
-                    : "bg-bg-elevated"
+                  "w-6 h-6 rounded-md flex items-center justify-center shrink-0 relative z-10",
+                  !entry.done ? "bg-accent/10" : bgColor[entry.icon]
                 )}>
                   {!entry.done ? (
-                    <Loader2 className="w-3 h-3 animate-spin text-accent" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
                   ) : (
-                    <Icon className={clsx("w-3 h-3", iconColor[entry.icon])} />
+                    <Icon className={clsx("w-3.5 h-3.5", iconColor[entry.icon])} />
                   )}
                 </div>
-                {i < activity.length - 1 && (
-                  <div className="w-px h-full bg-border absolute top-5 left-1/2 -translate-x-1/2" />
-                )}
-              </div>
 
-              {/* Message */}
-              <div className="flex-1 min-w-0 pt-0.5">
                 <span className={clsx(
-                  "text-xs leading-relaxed",
-                  entry.done ? "text-text-muted" : "text-text"
+                  "text-[13px] leading-snug truncate relative z-10",
+                  entry.icon === "error" ? "text-danger" :
+                  entry.icon === "done" ? "text-success font-medium" :
+                  !entry.done ? "text-text" :
+                  showShimmer ? "text-text" : "text-text-muted"
                 )}>
                   {entry.message}
                 </span>
-              </div>
-            </motion.div>
-          );
-        })}
-        <div ref={bottomRef} />
+              </motion.div>
+            );
+          })}
+
+          {/* Claude Code-style thinking line */}
+          {isRunning && (
+            <ThinkingLine
+              startedAt={startedAt || Date.now()}
+              tokenChars={tokenChars || 0}
+            />
+          )}
+
+          <div ref={bottomRef} />
+        </div>
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ export interface SSEState {
   error: string | null;
   phase: string | null;
   activity: ActivityEntry[];
+  startedAt: number;
 }
 
 export function useSSE() {
@@ -32,6 +33,7 @@ export function useSSE() {
     error: null,
     phase: null,
     activity: [],
+    startedAt: 0,
   });
 
   const abortRef = useRef<AbortController | null>(null);
@@ -76,6 +78,7 @@ export function useSSE() {
       error: null,
       phase: "ingesting",
       activity: [],
+      startedAt: Date.now(),
     });
 
     const isGithub = body.source.startsWith("https://github.com");

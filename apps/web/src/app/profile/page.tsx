@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Calendar, LogOut, Shield, Key, ArrowRight } from "lucide-react";
+import { Mail, Calendar, LogOut, Shield, Key, ArrowRight, Clock, Fingerprint } from "lucide-react";
 import Link from "next/link";
+import clsx from "clsx";
 import { AuthGuard } from "@/components/auth-guard";
 import { Navbar } from "@/components/navbar";
 import { useAuth } from "@/components/auth-provider";
@@ -39,24 +40,29 @@ function ProfileContent() {
       <Navbar />
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          {/* Profile Header */}
-          <div className="bg-bg-card border border-border rounded-xl p-6 mb-6">
-            <div className="flex items-center gap-4">
+          {/* Profile Header Card */}
+          <div className="bg-bg-card border border-border rounded-2xl overflow-hidden mb-6">
+            {/* Banner */}
+            <div className="h-24 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent relative">
+              <div className="absolute inset-0 bg-grid opacity-50" />
+            </div>
+            {/* Avatar + Info */}
+            <div className="px-6 pb-6 -mt-10 relative">
               {user.photoURL ? (
                 <img
                   src={user.photoURL}
                   alt=""
-                  className="w-16 h-16 rounded-full border-2 border-border"
+                  className="w-20 h-20 rounded-2xl border-4 border-bg-card shadow-lg"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center text-accent text-2xl font-bold border-2 border-border">
+                <div className="w-20 h-20 rounded-2xl bg-accent/20 flex items-center justify-center text-accent text-3xl font-bold border-4 border-bg-card shadow-lg">
                   {user.displayName?.[0] || user.email?.[0] || "?"}
                 </div>
               )}
-              <div>
-                <h1 className="text-xl font-bold">{user.displayName || "User"}</h1>
-                <p className="text-text-muted text-sm flex items-center gap-1.5">
+              <div className="mt-3">
+                <h1 className="text-xl font-bold tracking-tight">{user.displayName || "User"}</h1>
+                <p className="text-text-muted text-sm flex items-center gap-1.5 mt-0.5">
                   <Mail className="w-3.5 h-3.5" />
                   {user.email}
                 </p>
@@ -65,55 +71,50 @@ function ProfileContent() {
           </div>
 
           {/* Account Details */}
-          <div className="bg-bg-card border border-border rounded-xl p-6 mb-6">
-            <h2 className="font-semibold mb-4">Account Details</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <Mail className="w-4 h-4" />
-                  Email
+          <div className="bg-bg-card border border-border rounded-2xl overflow-hidden mb-6">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="font-semibold text-[15px]">Account Details</h2>
+            </div>
+            <div className="divide-y divide-border">
+              {[
+                { icon: Mail, label: "Email", value: user.email },
+                { icon: Fingerprint, label: "Provider", value: "Google" },
+                { icon: Calendar, label: "Joined", value: createdAt },
+                { icon: Clock, label: "Last sign in", value: lastSignIn },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between px-6 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-bg-elevated flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-text-dim" />
+                    </div>
+                    <span className="text-[13px] text-text-muted">{item.label}</span>
+                  </div>
+                  <span className="text-[13px] font-medium">{item.value}</span>
                 </div>
-                <span className="text-sm">{user.email}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <Shield className="w-4 h-4" />
-                  Provider
-                </div>
-                <span className="text-sm">Google</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <Calendar className="w-4 h-4" />
-                  Joined
-                </div>
-                <span className="text-sm">{createdAt}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <Calendar className="w-4 h-4" />
-                  Last sign in
-                </div>
-                <span className="text-sm">{lastSignIn}</span>
-              </div>
+              ))}
             </div>
           </div>
 
           {/* API Key Status */}
-          <div className="bg-bg-card border border-border rounded-xl p-6 mb-6">
+          <div className="bg-bg-card border border-border rounded-2xl p-5 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Key className={`w-5 h-5 ${isConnected ? "text-success" : "text-text-dim"}`} />
+                <div className={clsx(
+                  "w-10 h-10 rounded-xl flex items-center justify-center",
+                  isConnected ? "bg-success/10" : "bg-bg-elevated"
+                )}>
+                  <Key className={clsx("w-5 h-5", isConnected ? "text-success" : "text-text-dim")} />
+                </div>
                 <div>
-                  <h2 className="font-semibold text-sm">API Connection</h2>
-                  <p className="text-xs text-text-dim">
+                  <h2 className="font-semibold text-[14px]">API Connection</h2>
+                  <p className="text-[12px] text-text-dim">
                     {isConnected ? "Anthropic API key connected" : "No API key connected"}
                   </p>
                 </div>
               </div>
               <Link
                 href="/settings"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent hover:text-accent-hover transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-accent hover:bg-accent/5 rounded-lg transition-colors"
               >
                 {isConnected ? "Manage" : "Connect"}
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -124,7 +125,7 @@ function ProfileContent() {
           {/* Sign Out */}
           <button
             onClick={signOut}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm text-danger hover:bg-danger/10 rounded-lg transition-colors w-full justify-center border border-danger/20"
+            className="flex items-center gap-2 px-4 py-3 text-[13px] font-medium text-danger hover:bg-danger/5 rounded-xl transition-colors w-full justify-center border border-danger/15"
           >
             <LogOut className="w-4 h-4" />
             Sign out

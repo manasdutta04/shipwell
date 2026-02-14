@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Ship, Zap } from "lucide-react";
+import { Ship, Zap, Shield, Layers, Scan } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
 export default function LoginPage() {
@@ -20,25 +20,43 @@ export default function LoginPage() {
   if (user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
+    <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-grid" />
+      <div className="absolute inset-0 bg-radial-glow" />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-sm"
+        className="w-full max-w-sm relative"
       >
+        {/* Logo & Heading */}
         <div className="text-center mb-8">
-          <Ship className="w-12 h-12 text-accent mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Welcome to Shipwell</h1>
-          <p className="text-text-muted text-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-5 glow-accent"
+          >
+            <Ship className="w-8 h-8 text-accent" />
+          </motion.div>
+          <h1 className="text-3xl font-bold mb-2 tracking-tight">Welcome to <span className="gradient-text">Shipwell</span></h1>
+          <p className="text-text-muted text-sm leading-relaxed">
             Full Codebase Autopilot powered by Claude
           </p>
         </div>
 
-        <div className="bg-bg-card border border-border rounded-xl p-6">
+        {/* Sign-in Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-bg-card border border-border rounded-2xl p-6 shadow-2xl shadow-black/30"
+        >
           <button
             onClick={signInWithGoogle}
-            className="flex items-center justify-center gap-3 w-full px-4 py-3 bg-white hover:bg-gray-50 text-gray-800 font-medium rounded-lg transition-colors"
+            className="flex items-center justify-center gap-3 w-full px-4 py-3.5 bg-white hover:bg-gray-50 text-gray-800 font-semibold rounded-xl transition-all duration-200 text-[15px] shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -61,15 +79,37 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          <div className="mt-4 flex items-center gap-2 justify-center text-xs text-text-dim">
-            <Zap className="w-3 h-3" />
-            Your API key stays in your browser
+          <div className="mt-5 pt-4 border-t border-border">
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { icon: Shield, label: "Secure" },
+                { icon: Layers, label: "Cross-file" },
+                { icon: Scan, label: "Deep analysis" },
+              ].map((f) => (
+                <div key={f.label} className="text-center">
+                  <f.icon className="w-4 h-4 text-text-dim mx-auto mb-1" />
+                  <span className="text-[10px] text-text-dim">{f.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </motion.div>
 
-        <p className="text-center text-text-dim text-xs mt-6">
-          Built for the Built with Opus 4.6 Hackathon
-        </p>
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
+          className="text-center mt-6"
+        >
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-text-dim">
+            <Zap className="w-3 h-3" />
+            Your API key stays in your browser — never on our servers
+          </div>
+          <p className="text-text-dim text-[11px] mt-2">
+            Built for the Built with Opus 4.6 Hackathon
+          </p>
+        </motion.div>
       </motion.div>
     </div>
   );

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowRight, GitBranch, BookOpen, PackageCheck,
   Play, Square, Loader2, Link2,
-  AlertTriangle, Settings,
+  AlertTriangle, Settings, Scan, FileCode2, ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -20,11 +20,11 @@ import { StreamingOutput } from "@/components/streaming-output";
 import { AVAILABLE_MODELS, DEFAULT_MODEL } from "@shipwell/core/client";
 
 const operations = [
-  { id: "audit", label: "Security Audit", icon: Shield, color: "text-red-400" },
-  { id: "migrate", label: "Migration", icon: ArrowRight, color: "text-blue-400" },
-  { id: "refactor", label: "Refactor", icon: GitBranch, color: "text-purple-400" },
-  { id: "docs", label: "Documentation", icon: BookOpen, color: "text-green-400" },
-  { id: "upgrade", label: "Dep. Upgrade", icon: PackageCheck, color: "text-yellow-400" },
+  { id: "audit", label: "Security Audit", icon: Shield, color: "text-red-400", bg: "bg-red-500/8", desc: "Find vulnerabilities" },
+  { id: "migrate", label: "Migration", icon: ArrowRight, color: "text-blue-400", bg: "bg-blue-500/8", desc: "Plan migrations" },
+  { id: "refactor", label: "Refactor", icon: GitBranch, color: "text-purple-400", bg: "bg-purple-500/8", desc: "Detect code smells" },
+  { id: "docs", label: "Documentation", icon: BookOpen, color: "text-emerald-400", bg: "bg-emerald-500/8", desc: "Generate docs" },
+  { id: "upgrade", label: "Dep. Upgrade", icon: PackageCheck, color: "text-amber-400", bg: "bg-amber-500/8", desc: "Upgrade deps" },
 ] as const;
 
 type Tab = "findings" | "raw" | "metrics";
@@ -74,159 +74,206 @@ function AnalysisContent() {
   const crossFileCount = sse.findings.filter((f) => f.crossFile).length;
   const isRunning = sse.status === "connecting" || sse.status === "streaming";
 
+  const selectedOp = operations.find((op) => op.id === operation);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
       <div className="flex-1 flex">
         {/* Sidebar */}
-        <aside className="w-80 border-r border-border p-4 flex flex-col gap-4 shrink-0 overflow-y-auto">
-          {/* API Key Status */}
-          {loaded && !isConnected && (
-            <Link
-              href="/settings"
-              className="flex items-center gap-2 px-3 py-2.5 bg-warning/10 border border-warning/30 text-warning rounded-lg text-sm hover:bg-warning/20 transition-colors"
-            >
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span className="flex-1">Connect your API key in Settings</span>
-              <Settings className="w-4 h-4 shrink-0" />
-            </Link>
-          )}
+        <aside className="w-[320px] border-r border-border flex flex-col shrink-0 bg-bg-card/50">
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {/* API Key Warning */}
+            {loaded && !isConnected && (
+              <Link
+                href="/settings"
+                className="flex items-center gap-2.5 px-3.5 py-3 bg-warning/8 border border-warning/20 text-warning rounded-xl text-[13px] hover:bg-warning/12 transition-colors"
+              >
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span className="flex-1 font-medium">Connect API key</span>
+                <ChevronRight className="w-4 h-4 shrink-0" />
+              </Link>
+            )}
 
-          {/* Repo Input */}
-          <div>
-            <label className="block text-xs text-text-muted mb-1">Repository (path or GitHub URL)</label>
-            <input
-              type="text"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              placeholder="/path/to/repo or https://github.com/..."
-              className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm focus:border-accent focus:outline-none placeholder:text-text-dim"
-              disabled={isRunning}
-            />
-          </div>
-
-          {/* Operation Selector */}
-          <div>
-            <label className="block text-xs text-text-muted mb-2">Operation</label>
-            <div className="grid gap-1.5">
-              {operations.map((op) => (
-                <button
-                  key={op.id}
-                  onClick={() => setOperation(op.id)}
-                  disabled={isRunning}
-                  className={clsx(
-                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm text-left transition-colors",
-                    operation === op.id
-                      ? "bg-accent/10 border border-accent/30 text-accent"
-                      : "border border-transparent hover:bg-bg-elevated text-text-muted"
-                  )}
-                >
-                  <op.icon className={clsx("w-4 h-4", operation === op.id ? "text-accent" : op.color)} />
-                  {op.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Migration Target */}
-          {operation === "migrate" && (
+            {/* Repository Input */}
             <div>
-              <label className="block text-xs text-text-muted mb-1">Migration Target</label>
+              <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Repository</label>
               <input
                 type="text"
-                value={target}
-                onChange={(e) => setTarget(e.target.value)}
-                placeholder="e.g. React 19, Next.js 15"
-                className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm focus:border-accent focus:outline-none placeholder:text-text-dim"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                placeholder="GitHub URL or local path..."
+                className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim transition-colors"
                 disabled={isRunning}
               />
             </div>
-          )}
 
-          {/* Extra Context */}
-          <div>
-            <label className="block text-xs text-text-muted mb-1">Additional Context (optional)</label>
-            <textarea
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-              placeholder="Focus on auth endpoints..."
-              rows={3}
-              className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm focus:border-accent focus:outline-none placeholder:text-text-dim resize-none"
-              disabled={isRunning}
-            />
+            {/* Operation Selector */}
+            <div>
+              <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Operation</label>
+              <div className="grid gap-1.5">
+                {operations.map((op) => (
+                  <button
+                    key={op.id}
+                    onClick={() => setOperation(op.id)}
+                    disabled={isRunning}
+                    className={clsx(
+                      "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all duration-150",
+                      operation === op.id
+                        ? "bg-accent/8 border border-accent/25 ring-1 ring-accent/10"
+                        : "border border-transparent hover:bg-bg-elevated"
+                    )}
+                  >
+                    <div className={clsx(
+                      "w-8 h-8 rounded-lg flex items-center justify-center",
+                      operation === op.id ? "bg-accent/15" : op.bg
+                    )}>
+                      <op.icon className={clsx("w-4 h-4", operation === op.id ? "text-accent" : op.color)} />
+                    </div>
+                    <div>
+                      <div className={clsx(
+                        "text-[13px] font-medium",
+                        operation === op.id ? "text-accent" : "text-text"
+                      )}>
+                        {op.label}
+                      </div>
+                      <div className="text-[11px] text-text-dim">{op.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Migration Target */}
+            {operation === "migrate" && (
+              <div>
+                <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Migration Target</label>
+                <input
+                  type="text"
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  placeholder="e.g. React 19, Next.js 15"
+                  className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim transition-colors"
+                  disabled={isRunning}
+                />
+              </div>
+            )}
+
+            {/* Additional Context */}
+            <div>
+              <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Context <span className="text-text-dim font-normal normal-case">(optional)</span></label>
+              <textarea
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder="Focus on specific areas..."
+                rows={3}
+                className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim resize-none transition-colors"
+                disabled={isRunning}
+              />
+            </div>
+
+            {/* Model Info */}
+            <div className="flex items-center justify-between px-1 py-2 border-t border-border">
+              <span className="text-[11px] text-text-dim">
+                {AVAILABLE_MODELS.find(m => m.id === model)?.label || model}
+              </span>
+              <Link href="/settings" className="text-[11px] text-accent hover:text-accent-hover font-medium">
+                Change
+              </Link>
+            </div>
           </div>
 
-          {/* Model info */}
-          <div className="text-xs text-text-dim flex items-center justify-between px-1">
-            <span>Model: {AVAILABLE_MODELS.find(m => m.id === model)?.label || model}</span>
-            <Link href="/settings" className="text-accent hover:text-accent-hover">Change</Link>
+          {/* Start / Stop Button — pinned at bottom */}
+          <div className="p-4 border-t border-border">
+            {isRunning ? (
+              <button
+                onClick={sse.stop}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-danger/10 hover:bg-danger/15 text-danger font-semibold rounded-xl transition-colors border border-danger/20 text-[13px]"
+              >
+                <Square className="w-4 h-4" />
+                Stop Analysis
+              </button>
+            ) : (
+              <button
+                onClick={handleStart}
+                disabled={!source || !isConnected}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 glow-accent text-[13px]"
+              >
+                <Play className="w-4 h-4" />
+                Start Analysis
+              </button>
+            )}
           </div>
-
-          {/* Start / Stop Button */}
-          {isRunning ? (
-            <button
-              onClick={sse.stop}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-danger/20 hover:bg-danger/30 text-danger font-medium rounded-lg transition-colors"
-            >
-              <Square className="w-4 h-4" />
-              Stop Analysis
-            </button>
-          ) : (
-            <button
-              onClick={handleStart}
-              disabled={!source || !isConnected}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors glow-accent"
-            >
-              <Play className="w-4 h-4" />
-              Start Analysis
-            </button>
-          )}
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto">
           {sse.status === "idle" ? (
-            <div className="h-full flex items-center justify-center text-text-dim">
-              <div className="text-center">
-                <Shield className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p className="mb-2">Enter a repository and start an analysis</p>
+            /* Empty State */
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center max-w-xs">
+                <div className="w-16 h-16 rounded-2xl bg-bg-elevated border border-border flex items-center justify-center mx-auto mb-5">
+                  <Scan className="w-7 h-7 text-text-dim" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Ready to analyze</h3>
+                <p className="text-text-dim text-sm leading-relaxed mb-4">
+                  Enter a repository and choose an operation to start deep cross-file analysis.
+                </p>
                 {!isConnected && loaded && (
-                  <Link href="/settings" className="text-accent text-sm hover:text-accent-hover">
+                  <Link
+                    href="/settings"
+                    className="inline-flex items-center gap-1.5 text-accent text-sm hover:text-accent-hover font-medium"
+                  >
                     Connect your API key first
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
                 )}
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="p-6 space-y-6">
               {/* Activity Log */}
-              <ActivityLog activity={sse.activity} isRunning={isRunning} />
+              <ActivityLog activity={sse.activity} isRunning={isRunning} startedAt={sse.startedAt} tokenChars={sse.rawText.length} />
 
               {/* Error Banner */}
               {sse.error && (
-                <div className="bg-danger/10 border border-danger/30 rounded-lg p-4 text-danger text-sm">
-                  {sse.error}
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-danger/8 border border-danger/20 rounded-xl p-4 text-danger text-[13px] flex items-start gap-3"
+                >
+                  <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span className="leading-relaxed">{sse.error}</span>
+                </motion.div>
               )}
 
               {/* Tabs */}
-              <div className="flex items-center gap-1 border-b border-border">
-                {(["findings", "raw", "metrics"] as Tab[]).map((tab) => (
+              <div className="flex items-center gap-0.5 border-b border-border">
+                {([
+                  { key: "findings" as Tab, label: "Findings", count: sse.findings.length },
+                  { key: "raw" as Tab, label: "Raw Output", count: 0 },
+                  { key: "metrics" as Tab, label: "Metrics", count: sse.metrics.length },
+                ]).map((tab) => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
                     className={clsx(
-                      "px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize",
-                      activeTab === tab
+                      "px-4 py-2.5 text-[13px] font-medium border-b-2 transition-all duration-150 -mb-px",
+                      activeTab === tab.key
                         ? "border-accent text-accent"
                         : "border-transparent text-text-muted hover:text-text"
                     )}
                   >
-                    {tab}
-                    {tab === "findings" && sse.findings.length > 0 && (
-                      <span className="ml-2 px-1.5 py-0.5 bg-accent/20 text-accent text-xs rounded-full">
-                        {sse.findings.length}
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <span className={clsx(
+                        "ml-2 px-1.5 py-0.5 text-[10px] rounded-full font-semibold",
+                        activeTab === tab.key
+                          ? "bg-accent/15 text-accent"
+                          : "bg-bg-elevated text-text-dim"
+                      )}>
+                        {tab.count}
                       </span>
                     )}
                   </button>
@@ -236,14 +283,14 @@ function AnalysisContent() {
 
                 {/* Filters */}
                 {activeTab === "findings" && sse.findings.length > 0 && (
-                  <div className="flex items-center gap-2 pb-1">
+                  <div className="flex items-center gap-1.5 pb-1">
                     <button
                       onClick={() => setFilterCrossFile(!filterCrossFile)}
                       className={clsx(
-                        "flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors",
+                        "flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors",
                         filterCrossFile
-                          ? "bg-accent/20 text-accent"
-                          : "text-text-muted hover:text-text"
+                          ? "bg-accent/15 text-accent ring-1 ring-accent/20"
+                          : "text-text-muted hover:text-text hover:bg-bg-elevated"
                       )}
                     >
                       <Link2 className="w-3 h-3" />
@@ -257,10 +304,10 @@ function AnalysisContent() {
                           key={sev}
                           onClick={() => setFilterSeverity(filterSeverity === sev ? null : sev)}
                           className={clsx(
-                            "px-2 py-1 rounded text-xs capitalize transition-colors",
+                            "px-2.5 py-1 rounded-lg text-[11px] font-medium capitalize transition-colors",
                             filterSeverity === sev
-                              ? "bg-accent/20 text-accent"
-                              : "text-text-muted hover:text-text"
+                              ? "bg-accent/15 text-accent ring-1 ring-accent/20"
+                              : "text-text-muted hover:text-text hover:bg-bg-elevated"
                           )}
                         >
                           {sev} ({count})
@@ -286,10 +333,13 @@ function AnalysisContent() {
                         <FindingCard key={f.id} finding={f} index={i} />
                       ))
                     ) : sse.findings.length > 0 ? (
-                      <p className="text-text-dim text-sm py-8 text-center">No findings match the current filters</p>
+                      <div className="text-center py-12">
+                        <FileCode2 className="w-8 h-8 text-text-dim mx-auto mb-3" />
+                        <p className="text-text-dim text-sm">No findings match the current filters</p>
+                      </div>
                     ) : isRunning ? (
-                      <div className="flex items-center gap-2 text-text-muted text-sm py-8 justify-center">
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                      <div className="flex items-center gap-2.5 text-text-muted text-sm py-12 justify-center">
+                        <Loader2 className="w-4 h-4 animate-spin text-accent" />
                         Analyzing... findings will appear as they&apos;re discovered
                       </div>
                     ) : null}
@@ -320,9 +370,12 @@ function AnalysisContent() {
                         <MetricCard key={`${m.label}-${i}`} metric={m} index={i} />
                       ))
                     ) : (
-                      <p className="text-text-dim text-sm py-8 text-center col-span-2">
-                        {isRunning ? "Metrics will appear as analysis completes" : "No metrics available"}
-                      </p>
+                      <div className="col-span-2 text-center py-12">
+                        <FileCode2 className="w-8 h-8 text-text-dim mx-auto mb-3" />
+                        <p className="text-text-dim text-sm">
+                          {isRunning ? "Metrics will appear as analysis completes" : "No metrics available"}
+                        </p>
+                      </div>
                     )}
                   </motion.div>
                 )}
@@ -333,10 +386,12 @@ function AnalysisContent() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-bg-card border border-border rounded-lg p-4"
+                  className="bg-bg-card border border-border rounded-xl overflow-hidden"
                 >
-                  <h3 className="text-sm font-semibold mb-2">Summary</h3>
-                  <p className="text-text-muted text-sm leading-relaxed">{sse.summary}</p>
+                  <div className="px-5 py-3 border-b border-border">
+                    <h3 className="text-[13px] font-semibold">Summary</h3>
+                  </div>
+                  <p className="px-5 py-4 text-text-muted text-[13px] leading-relaxed">{sse.summary}</p>
                 </motion.div>
               )}
             </div>
