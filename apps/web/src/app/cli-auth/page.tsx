@@ -17,12 +17,13 @@ function CliAuthContent() {
     if (!loading && user && port && !redirected) {
       setRedirected(true);
       const params = new URLSearchParams({
+        port,
         name: user.displayName || "User",
         email: user.email || "",
         uid: user.uid,
         ...(user.photoURL ? { photo: user.photoURL } : {}),
       });
-      window.location.href = `http://127.0.0.1:${port}/callback?${params.toString()}`;
+      window.location.href = `/cli-auth/success?${params.toString()}`;
     }
   }, [user, loading, port, redirected]);
 
