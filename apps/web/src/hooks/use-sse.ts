@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import type { Finding, MetricEvent } from "@shipwell/core";
+import type { Finding, MetricEvent } from "@shipwell/core/client";
 
 export interface SSEState {
   status: "idle" | "connecting" | "streaming" | "complete" | "error";
@@ -30,6 +30,7 @@ export function useSSE() {
     operation: string;
     source: string;
     apiKey: string;
+    model?: string;
     target?: string;
     context?: string;
   }) => {

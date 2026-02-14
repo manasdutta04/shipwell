@@ -1,18 +1,22 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT, getOperationPrompt } from "../prompts/index.js";
+import { DEFAULT_MODEL } from "../models.js";
 import type { Operation } from "../types.js";
+
+export { AVAILABLE_MODELS, DEFAULT_MODEL } from "../models.js";
 
 export interface StreamOptions {
   apiKey: string;
   operation: Operation;
   codebaseXml: string;
+  model?: string;
   target?: string;
   context?: string;
   onText?: (text: string) => void;
 }
 
 export async function* streamAnalysis(options: StreamOptions): AsyncGenerator<string> {
-  const { apiKey, operation, codebaseXml, target, context, onText } = options;
+  const { apiKey, operation, codebaseXml, model, target, context, onText } = options;
 
   const client = new Anthropic({ apiKey });
 
@@ -23,7 +27,7 @@ Here is the complete codebase to analyze:
 ${codebaseXml}`;
 
   const stream = client.messages.stream({
-    model: "claude-opus-4-6-20250219",
+    model: model || DEFAULT_MODEL,
     max_tokens: 16000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],

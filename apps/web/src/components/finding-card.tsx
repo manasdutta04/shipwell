@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AlertTriangle, Info, Lightbulb, FileCode2, Link2 } from "lucide-react";
-import type { Finding } from "@shipwell/core";
+import type { Finding } from "@shipwell/core/client";
 import clsx from "clsx";
 
 const severityColors = {

@@ -3,16 +3,20 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Ship, Shield, ArrowRight, GitBranch, BookOpen, PackageCheck,
-  Play, Square, Loader2, CheckCircle2, XCircle, Link2, Filter,
-  ChevronLeft,
+  Shield, ArrowRight, GitBranch, BookOpen, PackageCheck,
+  Play, Square, Loader2, CheckCircle2, XCircle, Link2,
+  AlertTriangle, Settings,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
+import { AuthGuard } from "@/components/auth-guard";
+import { Navbar } from "@/components/navbar";
 import { useSSE } from "@/hooks/use-sse";
+import { useApiKey } from "@/hooks/use-api-key";
 import { FindingCard } from "@/components/finding-card";
 import { MetricCard } from "@/components/metric-card";
 import { StreamingOutput } from "@/components/streaming-output";
+import { AVAILABLE_MODELS, DEFAULT_MODEL } from "@shipwell/core/client";
 
 const operations = [
   { id: "audit", label: "Security Audit", icon: Shield, color: "text-red-400" },
@@ -25,8 +29,15 @@ const operations = [
 type Tab = "findings" | "raw" | "metrics";
 
 export default function AnalysisPage() {
+  return (
+    <AuthGuard>
+      <AnalysisContent />
+    </AuthGuard>
+  );
+}
+
+function AnalysisContent() {
   const [source, setSource] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [operation, setOperation] = useState<string>("audit");
   const [target, setTarget] = useState("");
   const [context, setContext] = useState("");
@@ -35,10 +46,22 @@ export default function AnalysisPage() {
   const [filterSeverity, setFilterSeverity] = useState<string | null>(null);
 
   const sse = useSSE();
+  const { apiKey, isConnected, loaded } = useApiKey();
+
+  const model = typeof window !== "undefined"
+    ? localStorage.getItem("shipwell_model") || DEFAULT_MODEL
+    : DEFAULT_MODEL;
 
   const handleStart = () => {
     if (!source || !apiKey) return;
-    sse.start({ operation, source, apiKey, target: target || undefined, context: context || undefined });
+    sse.start({
+      operation,
+      source,
+      apiKey,
+      model,
+      target: target || undefined,
+      context: context || undefined,
+    });
   };
 
   const filteredFindings = sse.findings.filter((f) => {
@@ -52,37 +75,45 @@ export default function AnalysisPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Nav */}
-      <nav className="border-b border-border px-6 py-3 flex items-center gap-4">
-        <Link href="/" className="flex items-center gap-2 text-text-muted hover:text-text transition-colors">
-          <ChevronLeft className="w-4 h-4" />
-          <Ship className="w-5 h-5 text-accent" />
-          <span className="font-bold">Shipwell</span>
-        </Link>
-        <div className="flex-1" />
+      <Navbar />
+
+      {/* Status bar */}
+      <div className="border-b border-border px-6 py-2 flex items-center gap-4 text-sm">
         {sse.phase && isRunning && (
-          <div className="flex items-center gap-2 text-sm text-accent">
+          <div className="flex items-center gap-2 text-accent">
             <Loader2 className="w-4 h-4 animate-spin" />
             {sse.phase}
           </div>
         )}
         {sse.status === "complete" && (
-          <div className="flex items-center gap-2 text-sm text-success">
+          <div className="flex items-center gap-2 text-success">
             <CheckCircle2 className="w-4 h-4" />
             Complete — {sse.findings.length} findings
           </div>
         )}
         {sse.status === "error" && (
-          <div className="flex items-center gap-2 text-sm text-danger">
+          <div className="flex items-center gap-2 text-danger">
             <XCircle className="w-4 h-4" />
             Error
           </div>
         )}
-      </nav>
+      </div>
 
       <div className="flex-1 flex">
         {/* Sidebar */}
         <aside className="w-80 border-r border-border p-4 flex flex-col gap-4 shrink-0 overflow-y-auto">
+          {/* API Key Status */}
+          {loaded && !isConnected && (
+            <Link
+              href="/settings"
+              className="flex items-center gap-2 px-3 py-2.5 bg-warning/10 border border-warning/30 text-warning rounded-lg text-sm hover:bg-warning/20 transition-colors"
+            >
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span className="flex-1">Connect your API key in Settings</span>
+              <Settings className="w-4 h-4 shrink-0" />
+            </Link>
+          )}
+
           {/* Repo Input */}
           <div>
             <label className="block text-xs text-text-muted mb-1">Repository (path or GitHub URL)</label>
@@ -91,19 +122,6 @@ export default function AnalysisPage() {
               value={source}
               onChange={(e) => setSource(e.target.value)}
               placeholder="/path/to/repo or https://github.com/..."
-              className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm focus:border-accent focus:outline-none placeholder:text-text-dim"
-              disabled={isRunning}
-            />
-          </div>
-
-          {/* API Key */}
-          <div>
-            <label className="block text-xs text-text-muted mb-1">Anthropic API Key</label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-ant-..."
               className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm focus:border-accent focus:outline-none placeholder:text-text-dim"
               disabled={isRunning}
             />
@@ -160,6 +178,12 @@ export default function AnalysisPage() {
             />
           </div>
 
+          {/* Model info */}
+          <div className="text-xs text-text-dim flex items-center justify-between px-1">
+            <span>Model: {AVAILABLE_MODELS.find(m => m.id === model)?.label || model}</span>
+            <Link href="/settings" className="text-accent hover:text-accent-hover">Change</Link>
+          </div>
+
           {/* Start / Stop Button */}
           {isRunning ? (
             <button
@@ -172,7 +196,7 @@ export default function AnalysisPage() {
           ) : (
             <button
               onClick={handleStart}
-              disabled={!source || !apiKey}
+              disabled={!source || !isConnected}
               className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors glow-accent"
             >
               <Play className="w-4 h-4" />
@@ -186,8 +210,13 @@ export default function AnalysisPage() {
           {sse.status === "idle" ? (
             <div className="h-full flex items-center justify-center text-text-dim">
               <div className="text-center">
-                <Ship className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>Enter a repository and start an analysis</p>
+                <Shield className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="mb-2">Enter a repository and start an analysis</p>
+                {!isConnected && loaded && (
+                  <Link href="/settings" className="text-accent text-sm hover:text-accent-hover">
+                    Connect your API key first
+                  </Link>
+                )}
               </div>
             </div>
           ) : (

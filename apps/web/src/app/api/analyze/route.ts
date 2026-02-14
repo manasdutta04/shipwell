@@ -6,10 +6,11 @@ export const maxDuration = 300; // 5 min max for long analyses
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { operation, source, apiKey, target, context } = body as {
+  const { operation, source, apiKey, model, target, context } = body as {
     operation: Operation;
     source: string;
     apiKey: string;
+    model?: string;
     target?: string;
     context?: string;
   };
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
         for await (const chunk of streamAnalysis({
           apiKey,
           operation,
+          model,
           codebaseXml: bundle.xml,
           target,
           context,

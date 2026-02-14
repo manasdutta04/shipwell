@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { MetricEvent } from "@shipwell/core";
+import type { MetricEvent } from "@shipwell/core/client";
 
 export function MetricCard({ metric, index }: { metric: MetricEvent; index: number }) {
   return (

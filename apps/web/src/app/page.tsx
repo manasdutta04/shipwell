@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Ship, Shield, ArrowRight, GitBranch, FileCode2, Zap, Scan, BookOpen, PackageCheck } from "lucide-react";
+import { Ship, Shield, ArrowRight, GitBranch, FileCode2, Zap, Scan, BookOpen, PackageCheck, LogIn } from "lucide-react";
 import Link from "next/link";
+import { Navbar } from "@/components/navbar";
+import { useAuth } from "@/components/auth-provider";
 
 const operations = [
   { id: "audit", label: "Security Audit", icon: Shield, desc: "Find vulnerabilities across your entire codebase" },
@@ -14,23 +15,11 @@ const operations = [
 ];
 
 export default function HomePage() {
+  const { user, loading } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Nav */}
-      <nav className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Ship className="w-6 h-6 text-accent" />
-          <span className="text-lg font-bold">Shipwell</span>
-        </div>
-        <a
-          href="https://github.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-text-muted hover:text-text text-sm"
-        >
-          GitHub
-        </a>
-      </nav>
+      <Navbar />
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
@@ -42,7 +31,7 @@ export default function HomePage() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-sm mb-6 border border-accent/20">
             <Zap className="w-3.5 h-3.5" />
-            Powered by Claude Opus 4.6 — 1M token context
+            Powered by Claude — 1M token context
           </div>
 
           <h1 className="text-5xl font-bold tracking-tight mb-4">
@@ -56,13 +45,25 @@ export default function HomePage() {
             that&apos;s impossible with file-by-file tools.
           </p>
 
-          <Link
-            href="/analysis"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors glow-accent"
-          >
-            <Scan className="w-5 h-5" />
-            Start Analysis
-          </Link>
+          {!loading && (
+            user ? (
+              <Link
+                href="/analysis"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors glow-accent"
+              >
+                <Scan className="w-5 h-5" />
+                Start Analysis
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors glow-accent"
+              >
+                <LogIn className="w-5 h-5" />
+                Sign in to Get Started
+              </Link>
+            )
+          )}
         </motion.div>
 
         {/* Operation cards */}
