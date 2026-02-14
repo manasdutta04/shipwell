@@ -27,12 +27,12 @@ export function startAuthFlow(baseUrl: string): Promise<AuthResult> {
         const uid = url.searchParams.get("uid") || "";
         const photo = url.searchParams.get("photo") || undefined;
 
-        // CORS headers so shipwell.app can reach this local server
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-
-        res.writeHead(200, { "Content-Type": "text/plain" });
-        res.end("ok");
+        // Redirect user back to shipwell.app success page
+        const successParams = new URLSearchParams({ name, email });
+        res.writeHead(302, {
+          Location: `${baseUrl}/cli-auth/success?${successParams.toString()}`,
+        });
+        res.end();
 
         server.close();
         resolve({ name, email, uid, photo });

@@ -17,13 +17,14 @@ function CliAuthContent() {
     if (!loading && user && port && !redirected) {
       setRedirected(true);
       const params = new URLSearchParams({
-        port,
         name: user.displayName || "User",
         email: user.email || "",
         uid: user.uid,
         ...(user.photoURL ? { photo: user.photoURL } : {}),
       });
-      window.location.href = `/cli-auth/success?${params.toString()}`;
+      // Redirect to CLI's local server — it will immediately redirect
+      // back to shipwell.app/cli-auth/success (localhost URL flashes briefly)
+      window.location.href = `http://127.0.0.1:${port}/callback?${params.toString()}`;
     }
   }, [user, loading, port, redirected]);
 

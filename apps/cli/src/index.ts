@@ -11,7 +11,7 @@ import { configShowCommand, configSetCommand, configDeleteCommand } from "./comm
 import { modelsCommand } from "./commands/models.js";
 import { getUser, getApiKey, getModel } from "./lib/store.js";
 
-const VERSION = "0.2.6";
+const VERSION = "0.2.7";
 
 const accent = chalk.hex("#6366f1");
 const dim = chalk.dim;
