@@ -1,6 +1,6 @@
 {
   "name": "@shipwellapp/cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Full Codebase Autopilot — deep cross-file analysis powered by Claude",
   "type": "module",
   "bin": {
@@ -51,6 +51,7 @@
     "simple-git": "^3.27.0"
   },
   "devDependencies": {
+    "@shipwell/core": "workspace:*",
     "@types/node": "^22.10.0",
     "tsup": "^8.5.1",
     "typescript": "^5.7.0"

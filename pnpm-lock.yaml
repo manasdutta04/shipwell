@@ -32,6 +32,9 @@ importers:
         specifier: ^3.27.0
         version: 3.30.0
     devDependencies:
+      '@shipwell/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@types/node':
         specifier: ^22.10.0
         version: 22.19.11

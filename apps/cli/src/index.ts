@@ -2,62 +2,122 @@
 
 import { Command } from "commander";
 import chalk from "chalk";
+import { AVAILABLE_MODELS, DEFAULT_MODEL } from "@shipwell/core";
 import { analyzeCommand } from "./commands/analyze.js";
 import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
 import { whoamiCommand } from "./commands/whoami.js";
 import { configShowCommand, configSetCommand, configDeleteCommand } from "./commands/config-cmd.js";
 import { modelsCommand } from "./commands/models.js";
-import { getUser, getApiKey } from "./lib/store.js";
+import { getUser, getApiKey, getModel } from "./lib/store.js";
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 
 const accent = chalk.hex("#6366f1");
 const dim = chalk.dim;
+const bold = chalk.bold;
+
+// ─── Box drawing helpers ────────────────────────────────────
+
+function stripAnsi(s: string): string {
+  return s.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+function visLen(s: string): number {
+  return stripAnsi(s).length;
+}
+
+function padR(s: string, w: number): string {
+  const gap = w - visLen(s);
+  return gap > 0 ? s + " ".repeat(gap) : s;
+}
+
+function centerStr(s: string, w: number): string {
+  const gap = w - visLen(s);
+  if (gap <= 0) return s;
+  const l = Math.floor(gap / 2);
+  return " ".repeat(l) + s + " ".repeat(gap - l);
+}
+
+// ─── Main banner ────────────────────────────────────────────
 
 function showBanner() {
   const user = getUser();
   const apiKey = getApiKey();
+  const storedModel = getModel();
+  const modelId = storedModel || DEFAULT_MODEL;
+  const modelObj = AVAILABLE_MODELS.find(m => m.id === modelId);
+  const modelLabel = modelObj?.label || modelId;
 
-  console.log();
-  console.log(`  ${accent("⛵")} ${chalk.bold("Shipwell")} ${dim(`v${VERSION}`)}`);
-  console.log(`  ${dim("Full Codebase Autopilot — powered by Claude")}`);
-  console.log();
+  const termW = process.stdout.columns || 90;
+  const W = Math.min(Math.max(termW, 80), 100);
+  const LW = Math.floor((W - 7) / 2);       // left content width
+  const RW = W - 7 - LW;                      // right content width
+  // row = │ <LW> │ <RW> │  → total = 7 + LW + RW = W
 
-  if (!user) {
-    console.log(`  ${chalk.yellow("●")} Not logged in`);
-    console.log(`  ${dim("Get started:")} ${chalk.cyan("shipwell login")}`);
-    console.log();
-  } else if (!apiKey) {
-    console.log(`  ${chalk.green("●")} ${user.name} ${dim(`(${user.email})`)}`);
-    console.log(`  ${chalk.yellow("●")} API key not set`);
-    console.log(`  ${dim("Set it:")} ${chalk.cyan("shipwell config set api-key")} ${dim("sk-ant-...")}`);
-    console.log();
+  const g = dim;
+  const row = (l: string, r: string) =>
+    `${g("│")} ${padR(l, LW)} ${g("│")} ${padR(r, RW)} ${g("│")}`;
+  const empty = () => row("", "");
+
+  // ── Top border ──
+  const title = `${accent("⛵ Shipwell")} ${g(`v${VERSION}`)}`;
+  const titleVis = visLen(title);
+  const dashes = W - 5 - titleVis;
+  const top = `${g("╭─")} ${title} ${g("─".repeat(Math.max(0, dashes)))}${g("╮")}`;
+
+  // ── Bottom border ──
+  const bot = `${g("╰")}${g("─".repeat(W - 2))}${g("╯")}`;
+
+  // ── Build rows ──
+  const lines: string[] = [];
+  lines.push("");
+  lines.push(top);
+  lines.push(empty());
+
+  // Welcome
+  const welcome = user
+    ? `Welcome back, ${accent(user.name)}!`
+    : `Welcome to ${accent("Shipwell")}`;
+  lines.push(row(centerStr(welcome, LW), bold("Analysis")));
+
+  // Commands (right) + Ship art (left)
+  lines.push(row("", `${chalk.cyan("audit")} ${g("<path>")}      ${g("Security audit")}`));
+  lines.push(row(centerStr("⛵", LW), `${chalk.cyan("migrate")} ${g("<path>")}    ${g("Migration plan")}`));
+  lines.push(row(centerStr(g("~^~^~^~^~"), LW), `${chalk.cyan("refactor")} ${g("<path>")}   ${g("Refactor analysis")}`));
+  lines.push(row("", `${chalk.cyan("docs")} ${g("<path>")}       ${g("Documentation")}`));
+  lines.push(row("", `${chalk.cyan("upgrade")} ${g("<path>")}    ${g("Dep upgrade plan")}`));
+
+  // Model + key info (left) + separator (right)
+  const keyDot = apiKey ? chalk.green("●") : chalk.yellow("○");
+  const keyText = apiKey ? g("API Key") : chalk.yellow("No API Key");
+  const info = `${accent(modelLabel)} · ${keyDot} ${keyText}`;
+  lines.push(row(centerStr(info, LW), g("─".repeat(RW))));
+
+  // Email / login hint (left) + Account commands (right)
+  if (user) {
+    lines.push(row(centerStr(g(user.email), LW), bold("Account & Config")));
   } else {
-    console.log(`  ${chalk.green("●")} ${user.name} ${dim(`(${user.email})`)}`);
-    console.log(`  ${chalk.green("●")} API key configured`);
-    console.log();
+    lines.push(row(
+      centerStr(`${g("Run")} ${chalk.cyan("shipwell login")} ${g("to start")}`, LW),
+      bold("Account & Config"),
+    ));
   }
 
-  console.log(`  ${chalk.bold("Analysis Commands")}`);
-  console.log(`    ${chalk.cyan("shipwell audit")} ${dim("<path>")}       Security audit`);
-  console.log(`    ${chalk.cyan("shipwell migrate")} ${dim("<path>")}     Migration plan`);
-  console.log(`    ${chalk.cyan("shipwell refactor")} ${dim("<path>")}    Refactor analysis`);
-  console.log(`    ${chalk.cyan("shipwell docs")} ${dim("<path>")}        Generate documentation`);
-  console.log(`    ${chalk.cyan("shipwell upgrade")} ${dim("<path>")}     Dependency upgrade plan`);
-  console.log();
-  console.log(`  ${chalk.bold("Account & Config")}`);
-  console.log(`    ${chalk.cyan("shipwell login")}                Sign in with Google`);
-  console.log(`    ${chalk.cyan("shipwell logout")}               Sign out`);
-  console.log(`    ${chalk.cyan("shipwell whoami")}               Show current user & config`);
-  console.log(`    ${chalk.cyan("shipwell config")}               View configuration`);
-  console.log(`    ${chalk.cyan("shipwell config set")} ${dim("<k> <v>")}  Set a config value`);
-  console.log(`    ${chalk.cyan("shipwell models")}               List available models`);
-  console.log(`    ${chalk.cyan("shipwell update")}               Update to latest version`);
-  console.log();
-  console.log(`  ${dim("Docs: https://shipwell.app  ·  v" + VERSION)}`);
-  console.log();
+  lines.push(row("", `${chalk.cyan("login")}      ${g("Sign in with Google")}`));
+  lines.push(row("", `${chalk.cyan("logout")}     ${g("Sign out")}`));
+  lines.push(row("", `${chalk.cyan("config")}     ${g("View/set configuration")}`));
+  lines.push(row("", `${chalk.cyan("models")}     ${g("Available Claude models")}`));
+  lines.push(row("", `${chalk.cyan("update")}     ${g("Update to latest version")}`));
+
+  lines.push(empty());
+  lines.push(bot);
+  lines.push("");
+
+  console.log(lines.join("\n"));
 }
+
+// ─── CLI program ────────────────────────────────────────────
 
 const program = new Command();
 
@@ -172,7 +232,7 @@ program
         execSync("npm install -g @shipwellapp/cli@latest", { stdio: "pipe" });
         spinner.succeed(`Updated to v${accent(latest)} ${dim(`(was v${VERSION})`)}`);
       }
-    } catch (err: any) {
+    } catch {
       spinner.fail("Update failed. Try manually:");
       console.log(`  ${chalk.cyan("npm install -g @shipwellapp/cli@latest")}`);
     }
