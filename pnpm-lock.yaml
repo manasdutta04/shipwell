@@ -13,9 +13,6 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.39.0
         version: 0.39.0
-      '@shipwell/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
