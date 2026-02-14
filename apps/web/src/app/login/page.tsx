@@ -112,7 +112,7 @@ export default function LoginPage() {
             Your API key stays in your browser — never on our servers
           </div>
           <p className="text-text-dim text-[11px] mt-2">
-            Built for the Built with Opus 4.6 Hackathon
+            Shipwell &copy; 2026 &middot; Built by Manas Dutta
           </p>
         </motion.div>
       </motion.div>

@@ -467,7 +467,7 @@ export default function CliPage() {
 
       {/* Footer */}
       <footer className="border-t border-border px-6 py-5 text-center text-text-dim text-xs">
-        Built for the Built with Opus 4.6 Hackathon &middot; Shipwell &copy; 2025
+        Shipwell &copy; 2026 &middot; Built by Manas Dutta
       </footer>
     </div>
   );
