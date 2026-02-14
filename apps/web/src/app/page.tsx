@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Shield, ArrowRight, GitBranch, Zap, Scan,
   BookOpen, PackageCheck, LogIn, ChevronRight, Code2, Layers,
+  Terminal, Copy, Check,
 } from "lucide-react";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
@@ -25,6 +26,23 @@ const stats = [
   { value: "5", label: "Analysis modes" },
   { value: "Real-time", label: "Streaming" },
 ];
+
+function CliInstallBlock() {
+  const [copied, setCopied] = useState(false);
+  const cmd = "npm install -g @shipwellapp/cli";
+  return (
+    <div className="inline-flex items-center gap-2 bg-bg border border-border rounded-lg px-4 py-2.5 font-mono text-[13px]">
+      <span className="text-text-dim">$</span>
+      <span className="text-accent">{cmd}</span>
+      <button
+        onClick={() => { navigator.clipboard.writeText(cmd); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+        className="text-text-dim hover:text-accent transition-colors p-0.5 ml-1"
+      >
+        {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+      </button>
+    </div>
+  );
+}
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -176,6 +194,66 @@ export default function HomePage() {
           </div>
         </div>
       </main>
+
+      {/* CLI Section */}
+      <div className="border-t border-border bg-bg-card/30">
+        <div className="max-w-4xl mx-auto px-6 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col md:flex-row items-center gap-10"
+          >
+            {/* Terminal mockup */}
+            <div className="flex-1 w-full">
+              <div className="rounded-xl border border-border overflow-hidden bg-bg shadow-2xl shadow-black/40">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-bg-elevated border-b border-border">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                  </div>
+                  <span className="text-[10px] text-text-dim font-mono ml-2">Terminal</span>
+                </div>
+                <div className="p-4 font-mono text-xs leading-relaxed">
+                  <div><span className="text-success">$</span> <span className="text-text">npm i -g @shipwellapp/cli</span></div>
+                  <div className="mt-2"><span className="text-success">$</span> <span className="text-text">shipwell audit</span> <span className="text-text-dim">https://github.com/user/repo</span></div>
+                  <div className="mt-2 text-text-dim">
+                    <span className="text-accent">{"⛵"}</span> Ingesting 342 files (187K tokens)...
+                  </div>
+                  <div className="text-text-dim">
+                    <span className="text-success">{"✔"}</span> Found 12 findings (3 cross-file)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CLI info */}
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/8 text-accent text-[11px] mb-4 border border-accent/15 font-medium">
+                <Terminal className="w-3 h-3" />
+                CLI Available
+              </div>
+              <h2 className="text-2xl font-bold mb-3 tracking-tight">
+                Also available in your <span className="gradient-text">terminal</span>
+              </h2>
+              <p className="text-text-muted text-sm leading-relaxed mb-5">
+                Run the same deep analysis from your command line.
+                Supports GitHub URLs and local paths, with real-time streaming output.
+              </p>
+              <CliInstallBlock />
+              <Link
+                href="/cli"
+                className="inline-flex items-center gap-1.5 text-accent text-sm hover:text-accent-hover font-medium mt-4"
+              >
+                View CLI docs
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </div>
 
       {/* Footer */}
       <footer className="border-t border-border px-6 py-5 text-center text-text-dim text-xs">

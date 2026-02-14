@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowRight, GitBranch, BookOpen, PackageCheck,
   Play, Square, Loader2, Link2,
-  AlertTriangle, Scan, FileCode2, ChevronRight, Key,
+  AlertTriangle, Scan, FileCode2, ChevronRight, Key, Terminal, ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -173,6 +173,21 @@ function AnalysisContent() {
                 disabled={isRunning}
               />
             </div>
+
+            {/* CLI Link */}
+            <Link
+              href="/cli"
+              className="flex items-center gap-2.5 px-3 py-2.5 bg-accent/5 border border-accent/10 rounded-xl text-[12px] hover:bg-accent/10 transition-colors group"
+            >
+              <div className="w-7 h-7 rounded-md bg-accent/10 flex items-center justify-center shrink-0">
+                <Terminal className="w-3.5 h-3.5 text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[12px] font-medium text-text leading-tight">Shipwell CLI</div>
+                <div className="text-[10px] text-text-dim leading-tight">Run from your terminal</div>
+              </div>
+              <ExternalLink className="w-3 h-3 text-text-dim group-hover:text-accent transition-colors shrink-0" />
+            </Link>
           </div>
 
           {/* Bottom bar — always visible */}
