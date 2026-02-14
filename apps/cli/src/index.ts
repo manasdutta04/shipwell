@@ -11,7 +11,7 @@ import { configShowCommand, configSetCommand, configDeleteCommand } from "./comm
 import { modelsCommand } from "./commands/models.js";
 import { getUser, getApiKey, getModel } from "./lib/store.js";
 
-const VERSION = "0.2.7";
+const VERSION = "0.2.8";
 
 const accent = chalk.hex("#6366f1");
 const dim = chalk.dim;
@@ -95,8 +95,8 @@ function showBanner() {
   lines.push(row("", g("─".repeat(RW))));
 
   // Model + key info (left) + Account section (right)
-  const keyDot = apiKey ? chalk.green("●") : chalk.yellow("○");
-  const keyText = apiKey ? g("API Key") : chalk.yellow("No API Key");
+  const keyDot = apiKey ? chalk.green("●") : chalk.red("●");
+  const keyText = apiKey ? g("API Key") : chalk.red("No API Key");
   const info = `${accent(modelLabel)} · ${keyDot} ${keyText}`;
   lines.push(row(centerStr(info, LW), bold("Account & Config")));
 

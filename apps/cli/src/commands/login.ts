@@ -29,6 +29,7 @@ export async function loginCommand() {
     console.log(chalk.dim("  Next, set your API key:"));
     console.log(`  ${chalk.cyan("shipwell config set api-key")} ${chalk.dim("sk-ant-...")}`);
     console.log();
+    process.exit(0);
   } catch (err: any) {
     spinner.fail(err.message);
     process.exit(1);
