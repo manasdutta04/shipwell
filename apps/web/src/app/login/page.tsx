@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Ship, Zap, Shield, Layers, Scan } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { LogoLoader } from "@/components/logo-loader";
 
 export default function LoginPage() {
   const { user, loading, signInWithGoogle } = useAuth();
@@ -16,7 +17,11 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
-  if (loading) return null;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <LogoLoader size={48} />
+    </div>
+  );
   if (user) return null;
 
   return (

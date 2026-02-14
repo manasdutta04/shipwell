@@ -3,7 +3,7 @@
 import { useAuth } from "./auth-provider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { LogoLoader } from "./logo-loader";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -18,7 +18,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        <LogoLoader size={48} />
       </div>
     );
   }

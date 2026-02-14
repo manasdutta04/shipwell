@@ -159,3 +159,33 @@ body {
   animation: sparkle-pulse 2s ease-in-out infinite;
   display: inline-block;
 }
+
+/* Logo draw animation */
+@keyframes draw-path {
+  0% { stroke-dashoffset: var(--path-length); opacity: 0.3; }
+  10% { opacity: 1; }
+  60% { stroke-dashoffset: 0; }
+  80% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0.4; }
+}
+
+.logo-draw {
+  animation: logo-glow 2s ease-in-out infinite;
+}
+
+@keyframes logo-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.2)); }
+  50% { filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.5)); }
+}
+
+.logo-path {
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  --path-length: 80;
+  animation: draw-path 2s ease-in-out infinite;
+}
+.logo-path-1 { animation-delay: 0s; }
+.logo-path-2 { animation-delay: 0.15s; }
+.logo-path-3 { animation-delay: 0.3s; }
+.logo-path-4 { animation-delay: 0.45s; }
+.logo-path-5 { animation-delay: 0.6s; }

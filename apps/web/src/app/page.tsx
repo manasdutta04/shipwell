@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  Shield, ArrowRight, GitBranch, FileCode2, Zap, Scan,
+  Shield, ArrowRight, GitBranch, Zap, Scan,
   BookOpen, PackageCheck, LogIn, ChevronRight, Code2, Layers,
 } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +28,17 @@ const stats = [
 
 export default function HomePage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // Redirect logged-in users straight to analysis
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/analysis");
+    }
+  }, [user, loading, router]);
+
+  // Don't render landing if logged in (avoids flash)
+  if (!loading && user) return null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -76,25 +89,14 @@ export default function HomePage() {
                   transition={{ duration: 0.4, delay: 0.3 }}
                   className="flex items-center gap-4 justify-center"
                 >
-                  {user ? (
-                    <Link
-                      href="/analysis"
-                      className="inline-flex items-center gap-2 px-7 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-all duration-200 glow-accent-lg text-[15px]"
-                    >
-                      <Scan className="w-5 h-5" />
-                      Start Analysis
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/login"
-                      className="inline-flex items-center gap-2 px-7 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-all duration-200 glow-accent-lg text-[15px]"
-                    >
-                      <LogIn className="w-5 h-5" />
-                      Get Started
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  )}
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center gap-2 px-7 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-all duration-200 glow-accent-lg text-[15px]"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    Get Started
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Link>
                 </motion.div>
               )}
             </motion.div>
@@ -106,7 +108,7 @@ export default function HomePage() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="flex items-center gap-8 mt-16"
             >
-              {stats.map((stat, i) => (
+              {stats.map((stat) => (
                 <div key={stat.label} className="text-center">
                   <div className="text-2xl font-bold text-text">{stat.value}</div>
                   <div className="text-xs text-text-dim mt-1">{stat.label}</div>

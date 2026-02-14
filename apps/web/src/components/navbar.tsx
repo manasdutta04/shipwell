@@ -2,14 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Ship, Settings, User, LogOut, ChevronDown, Sparkles } from "lucide-react";
+import { Ship, Settings, User, LogOut, ChevronDown, Key } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "./auth-provider";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -23,41 +21,13 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const navLinks = [
-    { href: "/analysis", label: "Analysis" },
-    { href: "/settings", label: "Settings" },
-  ];
-
   return (
-    <nav className="sticky top-0 z-50 glass border-b border-border">
-      <div className="px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-              <Ship className="w-4.5 h-4.5 text-accent" />
-            </div>
-            <span className="font-bold text-[15px] tracking-tight">Shipwell</span>
-          </Link>
-
-          {user && (
-            <div className="flex items-center gap-0.5">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={clsx(
-                    "px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150",
-                    pathname === link.href
-                      ? "bg-accent/10 text-accent"
-                      : "text-text-muted hover:text-text hover:bg-bg-elevated"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+    <nav className="sticky top-0 z-50 glass border-b border-border h-14 shrink-0">
+      <div className="px-5 h-full flex items-center justify-between">
+        <Link href={user ? "/analysis" : "/"} className="flex items-center gap-2 group">
+          <Ship className="w-5 h-5 text-accent group-hover:text-accent-hover transition-colors" />
+          <span className="font-bold text-[15px] tracking-tight">Shipwell</span>
+        </Link>
 
         <div className="flex items-center gap-3">
           {!user && (
@@ -116,8 +86,8 @@ export function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-text-muted hover:bg-bg-elevated hover:text-text transition-colors"
                     >
-                      <Settings className="w-4 h-4" />
-                      Settings
+                      <Key className="w-4 h-4" />
+                      API Key & Model
                     </Link>
                   </div>
                   <div className="border-t border-border py-1">

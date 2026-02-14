@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowRight, GitBranch, BookOpen, PackageCheck,
   Play, Square, Loader2, Link2,
-  AlertTriangle, Settings, Scan, FileCode2, ChevronRight,
+  AlertTriangle, Scan, FileCode2, ChevronRight, Key,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -74,71 +74,70 @@ function AnalysisContent() {
   const crossFileCount = sse.findings.filter((f) => f.crossFile).length;
   const isRunning = sse.status === "connecting" || sse.status === "streaming";
 
-  const selectedOp = operations.find((op) => op.id === operation);
-
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Navbar />
 
-      <div className="flex-1 flex">
-        {/* Sidebar */}
-        <aside className="w-[320px] border-r border-border flex flex-col shrink-0 bg-bg-card/50">
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+      <div className="flex-1 flex min-h-0">
+        {/* Sidebar — fixed height, internally scrollable */}
+        <aside className="w-[300px] border-r border-border flex flex-col shrink-0 bg-bg-card/30">
+          {/* Scrollable controls */}
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 sidebar-scroll">
             {/* API Key Warning */}
             {loaded && !isConnected && (
               <Link
                 href="/settings"
-                className="flex items-center gap-2.5 px-3.5 py-3 bg-warning/8 border border-warning/20 text-warning rounded-xl text-[13px] hover:bg-warning/12 transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2.5 bg-warning/8 border border-warning/20 text-warning rounded-xl text-[12px] hover:bg-warning/12 transition-colors"
               >
-                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <Key className="w-3.5 h-3.5 shrink-0" />
                 <span className="flex-1 font-medium">Connect API key</span>
-                <ChevronRight className="w-4 h-4 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 shrink-0" />
               </Link>
             )}
 
             {/* Repository Input */}
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Repository</label>
+              <label className="block text-[10px] uppercase tracking-wider text-text-dim font-semibold mb-1.5">Repository</label>
               <input
                 type="text"
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
                 placeholder="GitHub URL or local path..."
-                className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim transition-colors"
+                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim transition-colors"
                 disabled={isRunning}
               />
             </div>
 
             {/* Operation Selector */}
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Operation</label>
-              <div className="grid gap-1.5">
+              <label className="block text-[10px] uppercase tracking-wider text-text-dim font-semibold mb-1.5">Operation</label>
+              <div className="grid gap-1">
                 {operations.map((op) => (
                   <button
                     key={op.id}
                     onClick={() => setOperation(op.id)}
                     disabled={isRunning}
                     className={clsx(
-                      "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all duration-150",
+                      "flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all duration-150",
                       operation === op.id
-                        ? "bg-accent/8 border border-accent/25 ring-1 ring-accent/10"
+                        ? "bg-accent/8 border border-accent/25"
                         : "border border-transparent hover:bg-bg-elevated"
                     )}
                   >
                     <div className={clsx(
-                      "w-8 h-8 rounded-lg flex items-center justify-center",
+                      "w-7 h-7 rounded-md flex items-center justify-center shrink-0",
                       operation === op.id ? "bg-accent/15" : op.bg
                     )}>
-                      <op.icon className={clsx("w-4 h-4", operation === op.id ? "text-accent" : op.color)} />
+                      <op.icon className={clsx("w-3.5 h-3.5", operation === op.id ? "text-accent" : op.color)} />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className={clsx(
-                        "text-[13px] font-medium",
+                        "text-[12px] font-medium leading-tight",
                         operation === op.id ? "text-accent" : "text-text"
                       )}>
                         {op.label}
                       </div>
-                      <div className="text-[11px] text-text-dim">{op.desc}</div>
+                      <div className="text-[10px] text-text-dim leading-tight">{op.desc}</div>
                     </div>
                   </button>
                 ))}
@@ -148,13 +147,13 @@ function AnalysisContent() {
             {/* Migration Target */}
             {operation === "migrate" && (
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Migration Target</label>
+                <label className="block text-[10px] uppercase tracking-wider text-text-dim font-semibold mb-1.5">Migration Target</label>
                 <input
                   type="text"
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
                   placeholder="e.g. React 19, Next.js 15"
-                  className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim transition-colors"
+                  className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim transition-colors"
                   disabled={isRunning}
                 />
               </div>
@@ -162,53 +161,56 @@ function AnalysisContent() {
 
             {/* Additional Context */}
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-text-dim font-semibold mb-2">Context <span className="text-text-dim font-normal normal-case">(optional)</span></label>
+              <label className="block text-[10px] uppercase tracking-wider text-text-dim font-semibold mb-1.5">
+                Context <span className="font-normal normal-case text-text-dim">(optional)</span>
+              </label>
               <textarea
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
                 placeholder="Focus on specific areas..."
-                rows={3}
-                className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim resize-none transition-colors"
+                rows={2}
+                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-[13px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 placeholder:text-text-dim resize-none transition-colors"
                 disabled={isRunning}
               />
             </div>
+          </div>
 
-            {/* Model Info */}
-            <div className="flex items-center justify-between px-1 py-2 border-t border-border">
-              <span className="text-[11px] text-text-dim">
+          {/* Bottom bar — always visible */}
+          <div className="p-3 border-t border-border space-y-2.5 shrink-0 bg-bg-card/50">
+            {/* Model */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[10px] text-text-dim truncate">
                 {AVAILABLE_MODELS.find(m => m.id === model)?.label || model}
               </span>
-              <Link href="/settings" className="text-[11px] text-accent hover:text-accent-hover font-medium">
+              <Link href="/settings" className="text-[10px] text-accent hover:text-accent-hover font-medium shrink-0">
                 Change
               </Link>
             </div>
-          </div>
 
-          {/* Start / Stop Button — pinned at bottom */}
-          <div className="p-4 border-t border-border">
+            {/* Action Button */}
             {isRunning ? (
               <button
                 onClick={sse.stop}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-danger/10 hover:bg-danger/15 text-danger font-semibold rounded-xl transition-colors border border-danger/20 text-[13px]"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-danger/10 hover:bg-danger/15 text-danger font-semibold rounded-lg transition-colors border border-danger/20 text-[13px]"
               >
-                <Square className="w-4 h-4" />
-                Stop Analysis
+                <Square className="w-3.5 h-3.5" />
+                Stop
               </button>
             ) : (
               <button
                 onClick={handleStart}
                 disabled={!source || !isConnected}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 glow-accent text-[13px]"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 glow-accent text-[13px]"
               >
-                <Play className="w-4 h-4" />
+                <Play className="w-3.5 h-3.5" />
                 Start Analysis
               </button>
             )}
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Main Content — scrolls independently */}
+        <main className="flex-1 min-h-0 overflow-y-auto">
           {sse.status === "idle" ? (
             /* Empty State */
             <div className="h-full flex items-center justify-center">
@@ -232,7 +234,7 @@ function AnalysisContent() {
               </div>
             </div>
           ) : (
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-5">
               {/* Activity Log */}
               <ActivityLog activity={sse.activity} isRunning={isRunning} startedAt={sse.startedAt} tokenChars={sse.rawText.length} />
 
