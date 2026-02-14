@@ -74,8 +74,8 @@ function CliAuthContent() {
 
       <div className="w-full max-w-sm relative">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-5 glow-accent">
-            <Ship className="w-8 h-8 text-accent" />
+          <div className="mb-5 flex justify-center">
+            <Ship className="w-10 h-10 text-accent" />
           </div>
           <h1 className="text-2xl font-bold mb-2 tracking-tight">
             Sign in to <span className="gradient-text">Shipwell CLI</span>
