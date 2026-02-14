@@ -8,6 +8,7 @@ export class StreamingParser {
   private buffer = "";
   private findingCount = 0;
   private emittedFindings = new Set<string>();
+  private emittedMetrics = new Set<string>();
 
   /** Append new text chunk and extract any complete findings */
   push(chunk: string): { findings: Finding[]; metrics: MetricEvent[] } {
@@ -66,6 +67,10 @@ export class StreamingParser {
 
     let match;
     while ((match = regex.exec(this.buffer)) !== null) {
+      const key = `${match[1]}:${match[2]}:${match[3]}`;
+      if (this.emittedMetrics.has(key)) continue;
+      this.emittedMetrics.add(key);
+
       metrics.push({
         label: match[1],
         before: match[2],

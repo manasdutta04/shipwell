@@ -10,4 +10,4 @@ export type {
   AnalysisRequest,
 } from "./types.js";
 
-export { AVAILABLE_MODELS, DEFAULT_MODEL } from "./models.js";
+export { AVAILABLE_MODELS, DEFAULT_MODEL, getMaxCodebaseTokens } from "./models.js";

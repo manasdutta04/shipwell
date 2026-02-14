@@ -3,6 +3,14 @@
 import { useState, useCallback, useRef } from "react";
 import type { Finding, MetricEvent } from "@shipwell/core/client";
 
+export interface ActivityEntry {
+  id: string;
+  icon: "clone" | "read" | "bundle" | "analyze" | "finding" | "metric" | "done" | "error";
+  message: string;
+  timestamp: number;
+  done: boolean;
+}
+
 export interface SSEState {
   status: "idle" | "connecting" | "streaming" | "complete" | "error";
   rawText: string;
@@ -11,6 +19,7 @@ export interface SSEState {
   summary: string | null;
   error: string | null;
   phase: string | null;
+  activity: ActivityEntry[];
 }
 
 export function useSSE() {
@@ -22,9 +31,27 @@ export function useSSE() {
     summary: null,
     error: null,
     phase: null,
+    activity: [],
   });
 
   const abortRef = useRef<AbortController | null>(null);
+  const activityRef = useRef<ActivityEntry[]>([]);
+  const findingCountRef = useRef(0);
+
+  function addActivity(icon: ActivityEntry["icon"], message: string, done = false): string {
+    const id = `act-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const entry: ActivityEntry = { id, icon, message, timestamp: Date.now(), done };
+    activityRef.current = [...activityRef.current, entry];
+    setState(prev => ({ ...prev, activity: activityRef.current }));
+    return id;
+  }
+
+  function completeActivity(id: string) {
+    activityRef.current = activityRef.current.map(a =>
+      a.id === id ? { ...a, done: true } : a
+    );
+    setState(prev => ({ ...prev, activity: activityRef.current }));
+  }
 
   const start = useCallback(async (body: {
     operation: string;
@@ -34,10 +61,11 @@ export function useSSE() {
     target?: string;
     context?: string;
   }) => {
-    // Abort any existing stream
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    activityRef.current = [];
+    findingCountRef.current = 0;
 
     setState({
       status: "connecting",
@@ -47,7 +75,14 @@ export function useSSE() {
       summary: null,
       error: null,
       phase: "ingesting",
+      activity: [],
     });
+
+    const isGithub = body.source.startsWith("https://github.com");
+    const connectId = addActivity(
+      "clone",
+      isGithub ? `Cloning ${body.source.split("/").slice(-2).join("/")}...` : `Reading ${body.source}...`
+    );
 
     try {
       const response = await fetch("/api/analyze", {
@@ -59,12 +94,17 @@ export function useSSE() {
 
       if (!response.ok) {
         const err = await response.text();
+        completeActivity(connectId);
+        addActivity("error", err || `HTTP ${response.status}`, true);
         setState(prev => ({ ...prev, status: "error", error: err || `HTTP ${response.status}` }));
         return;
       }
 
+      completeActivity(connectId);
+
       const reader = response.body?.getReader();
       if (!reader) {
+        addActivity("error", "No response body", true);
         setState(prev => ({ ...prev, status: "error", error: "No response body" }));
         return;
       }
@@ -74,6 +114,7 @@ export function useSSE() {
       let fullText = "";
       const allFindings: Finding[] = [];
       const allMetrics: MetricEvent[] = [];
+      let analyzeId: string | null = null;
 
       setState(prev => ({ ...prev, status: "streaming", phase: "analyzing" }));
 
@@ -83,7 +124,6 @@ export function useSSE() {
 
         buffer += decoder.decode(value, { stream: true });
 
-        // Process SSE events
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
@@ -100,33 +140,57 @@ export function useSSE() {
                 setState(prev => ({ ...prev, rawText: fullText }));
               } else if (event.type === "finding") {
                 allFindings.push(event.data);
+                findingCountRef.current++;
+                const f = event.data;
+                const severity = f.severity ? `[${f.severity}] ` : "";
+                const cross = f.crossFile ? " (cross-file)" : "";
+                addActivity("finding", `${severity}${f.title}${cross}`, true);
                 setState(prev => ({ ...prev, findings: [...allFindings] }));
               } else if (event.type === "metric") {
                 allMetrics.push(event.data);
+                addActivity("metric", `${event.data.label}: ${event.data.before} → ${event.data.after}`, true);
                 setState(prev => ({ ...prev, metrics: [...allMetrics] }));
               } else if (event.type === "status") {
-                setState(prev => ({ ...prev, phase: event.data.phase }));
+                const phase = event.data.phase;
+                const msg = event.data.message;
+
+                if (phase === "bundling") {
+                  addActivity("read", msg, true);
+                } else if (phase === "analyzing") {
+                  addActivity("bundle", msg, true);
+                  analyzeId = addActivity("analyze", `Running ${body.operation} analysis...`);
+                } else if (phase === "complete") {
+                  if (analyzeId) completeActivity(analyzeId);
+                }
+
+                setState(prev => ({ ...prev, phase }));
               } else if (event.type === "summary") {
                 setState(prev => ({ ...prev, summary: event.data }));
               } else if (event.type === "error") {
+                if (analyzeId) completeActivity(analyzeId);
+                addActivity("error", event.data, true);
                 setState(prev => ({ ...prev, status: "error", error: event.data }));
               }
             } catch {
-              // Ignore parse errors for partial chunks
+              // Ignore parse errors
             }
           }
         }
       }
 
+      if (analyzeId) completeActivity(analyzeId);
+      addActivity("done", `Analysis complete — ${allFindings.length} findings`, true);
       setState(prev => ({ ...prev, status: "complete" }));
     } catch (err: any) {
       if (err.name === "AbortError") return;
+      addActivity("error", err.message, true);
       setState(prev => ({ ...prev, status: "error", error: err.message }));
     }
   }, []);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
+    addActivity("done", "Analysis stopped", true);
     setState(prev => ({ ...prev, status: "complete" }));
   }, []);
 

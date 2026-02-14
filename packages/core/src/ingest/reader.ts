@@ -90,7 +90,9 @@ export async function ingestRepo(options: IngestOptions): Promise<IngestResult> 
         continue;
       }
 
-      const tokens = estimateTokens(content);
+      // Include XML wrapping overhead in token estimate
+      const xmlOverhead = `<file path="${filePath}" language="${getLanguage(filePath)}">\n</file>\n`;
+      const tokens = estimateTokens(content + xmlOverhead);
       files.push({
         path: filePath,
         content,

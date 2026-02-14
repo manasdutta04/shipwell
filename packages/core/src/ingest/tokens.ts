@@ -1,9 +1,8 @@
 /**
- * Fast token estimation — ~4 chars per token for code.
- * This is a rough approximation that avoids needing tiktoken.
+ * Fast token estimation. Uses ~3.2 chars per token which is conservative
+ * for code (accounts for whitespace, keywords, symbols). Better to
+ * overcount than undercount and hit context limits.
  */
 export function estimateTokens(text: string): number {
-  // Claude tokenizer averages ~3.5-4.5 chars per token for code
-  // We use 4 as a reasonable middle ground
-  return Math.ceil(text.length / 4);
+  return Math.ceil(text.length / 3.2);
 }

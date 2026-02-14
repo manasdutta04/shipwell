@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { ingestRepo, bundleCodebase, streamAnalysis, StreamingParser } from "@shipwell/core";
+import { ingestRepo, bundleCodebase, streamAnalysis, StreamingParser, DEFAULT_MODEL, getMaxCodebaseTokens } from "@shipwell/core";
 import type { Operation } from "@shipwell/core";
 
 export const maxDuration = 300; // 5 min max for long analyses
@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
     return new Response("Missing required fields: operation, source, apiKey", { status: 400 });
   }
 
+  const selectedModel = model || DEFAULT_MODEL;
+  const maxCodebaseTokens = getMaxCodebaseTokens(selectedModel);
+
   const encoder = new TextEncoder();
   const parser = new StreamingParser();
 
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
         // Phase 1: Ingest
         send("status", { phase: "ingesting", message: "Cloning and reading repository..." });
 
-        const ingestResult = await ingestRepo({ source });
+        const ingestResult = await ingestRepo({ source, maxTokens: maxCodebaseTokens });
         send("status", {
           phase: "bundling",
           message: `Read ${ingestResult.totalFiles} files (${ingestResult.skippedFiles} skipped)`,
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
         for await (const chunk of streamAnalysis({
           apiKey,
           operation,
-          model,
+          model: selectedModel,
           codebaseXml: bundle.xml,
           target,
           context,

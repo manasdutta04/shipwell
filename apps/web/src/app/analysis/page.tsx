@@ -4,13 +4,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowRight, GitBranch, BookOpen, PackageCheck,
-  Play, Square, Loader2, CheckCircle2, XCircle, Link2,
+  Play, Square, Loader2, Link2,
   AlertTriangle, Settings,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import { AuthGuard } from "@/components/auth-guard";
 import { Navbar } from "@/components/navbar";
+import { ActivityLog } from "@/components/activity-log";
 import { useSSE } from "@/hooks/use-sse";
 import { useApiKey } from "@/hooks/use-api-key";
 import { FindingCard } from "@/components/finding-card";
@@ -76,28 +77,6 @@ function AnalysisContent() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-
-      {/* Status bar */}
-      <div className="border-b border-border px-6 py-2 flex items-center gap-4 text-sm">
-        {sse.phase && isRunning && (
-          <div className="flex items-center gap-2 text-accent">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            {sse.phase}
-          </div>
-        )}
-        {sse.status === "complete" && (
-          <div className="flex items-center gap-2 text-success">
-            <CheckCircle2 className="w-4 h-4" />
-            Complete — {sse.findings.length} findings
-          </div>
-        )}
-        {sse.status === "error" && (
-          <div className="flex items-center gap-2 text-danger">
-            <XCircle className="w-4 h-4" />
-            Error
-          </div>
-        )}
-      </div>
 
       <div className="flex-1 flex">
         {/* Sidebar */}
@@ -221,19 +200,13 @@ function AnalysisContent() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Activity Log */}
+              <ActivityLog activity={sse.activity} isRunning={isRunning} />
+
               {/* Error Banner */}
               {sse.error && (
                 <div className="bg-danger/10 border border-danger/30 rounded-lg p-4 text-danger text-sm">
                   {sse.error}
-                </div>
-              )}
-
-              {/* Metrics */}
-              {sse.metrics.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {sse.metrics.map((m, i) => (
-                    <MetricCard key={m.label} metric={m} index={i} />
-                  ))}
                 </div>
               )}
 
@@ -344,7 +317,7 @@ function AnalysisContent() {
                   >
                     {sse.metrics.length > 0 ? (
                       sse.metrics.map((m, i) => (
-                        <MetricCard key={m.label} metric={m} index={i} />
+                        <MetricCard key={`${m.label}-${i}`} metric={m} index={i} />
                       ))
                     ) : (
                       <p className="text-text-dim text-sm py-8 text-center col-span-2">
