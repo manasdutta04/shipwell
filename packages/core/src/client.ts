@@ -11,3 +11,5 @@ export type {
 } from "./types.js";
 
 export { AVAILABLE_MODELS, DEFAULT_MODEL, getMaxCodebaseTokens } from "./models.js";
+
+export type { ApplyResult, PRDescriptionOptions } from "./github/index.js";

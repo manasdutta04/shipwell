@@ -25,6 +25,7 @@ import { SeverityBar } from "@/components/severity-bar";
 import { FileImpact } from "@/components/file-impact";
 import { CrossFileGraph } from "@/components/cross-file-graph";
 import { ExportButton } from "@/components/export-button";
+import { CreatePRButton } from "@/components/create-pr-button";
 import { TokenGauge } from "@/components/token-gauge";
 import { useToasts, ToastContainer } from "@/components/toast";
 import { AVAILABLE_MODELS, DEFAULT_MODEL } from "@shipwell/core/client";
@@ -425,15 +426,22 @@ function AnalysisContent() {
 
                 <div className="flex-1" />
 
-                {/* Export */}
+                {/* Export + Fix PR */}
                 {sse.status === "complete" && sse.findings.length > 0 && (
-                  <ExportButton
-                    findings={sse.findings}
-                    metrics={sse.metrics}
-                    summary={sse.summary}
-                    operation={operation}
-                    source={source}
-                  />
+                  <>
+                    <CreatePRButton
+                      findings={sse.findings}
+                      operation={operation}
+                      source={source}
+                    />
+                    <ExportButton
+                      findings={sse.findings}
+                      metrics={sse.metrics}
+                      summary={sse.summary}
+                      operation={operation}
+                      source={source}
+                    />
+                  </>
                 )}
 
                 {/* Filters */}

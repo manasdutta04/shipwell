@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Key, Check, X, Eye, EyeOff, Shield, Cpu, ExternalLink, Sparkles, Loader2 } from "lucide-react";
+import { Key, Check, X, Eye, EyeOff, Shield, Cpu, ExternalLink, Sparkles, Loader2, Github } from "lucide-react";
 import clsx from "clsx";
 import { AuthGuard } from "@/components/auth-guard";
 import { Navbar } from "@/components/navbar";
@@ -250,6 +250,48 @@ function SettingsContent() {
                     )}
                   </button>
                 ))}
+              </div>
+            </div>
+          </section>
+
+          {/* GitHub App Integration */}
+          <section className="bg-bg-card/80 backdrop-blur-sm border border-border rounded-2xl overflow-hidden mt-6 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="px-6 py-5 border-b border-border flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-bg-elevated flex items-center justify-center">
+                  <Github className="w-5 h-5 text-text-dim" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-semibold text-[15px]">GitHub Integration</h2>
+                  <p className="text-text-dim text-[12px]">
+                    Install the Shipwell app to enable auto-fix PRs
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <p className="text-text-muted text-[13px] leading-relaxed">
+                  After analysis, click &quot;Create Fix PR&quot; and Shipwell will open a pull request with the suggested fixes — authored by <strong className="text-text">ShipwellHQ</strong>.
+                </p>
+
+                <a
+                  href="https://github.com/apps/shipwellhq"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2.5 w-full px-5 py-3 bg-[#24292f] hover:bg-[#32383f] text-white text-[13px] font-semibold rounded-xl transition-all duration-200"
+                >
+                  <Github className="w-4 h-4" />
+                  Install Shipwell on GitHub
+                  <ExternalLink className="w-3 h-3 opacity-60" />
+                </a>
+
+                <div className="flex items-start gap-2.5 text-[12px] text-text-dim bg-bg-elevated/50 rounded-xl px-4 py-3">
+                  <Shield className="w-4 h-4 mt-0.5 shrink-0 text-text-dim" />
+                  <span className="leading-relaxed">
+                    The app only needs <code className="text-text-muted">Contents</code> and <code className="text-text-muted">Pull Requests</code> write access. You can choose specific repositories during installation.
+                  </span>
+                </div>
               </div>
             </div>
           </section>

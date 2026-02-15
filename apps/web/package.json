@@ -9,6 +9,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@octokit/auth-app": "^8.2.0",
+    "@octokit/rest": "^22.0.1",
     "@shipwell/core": "workspace:*",
     "clsx": "^2.1.1",
     "firebase": "^12.9.0",
