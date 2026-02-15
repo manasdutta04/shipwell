@@ -24,7 +24,7 @@ IMPORTANT: You MUST always include a "Health Score" metric (0-100) as the FIRST 
 
 <finding id="1" type="issue|suggestion|change|doc" severity="critical|high|medium|low|info">
 <title>Short descriptive title</title>
-<description>Detailed explanation of the finding</description>
+<description>Full, complete explanation of the finding. Never abbreviate or truncate with ellipsis. Include all relevant details, examples, and attack vectors.</description>
 <files>
 <file>path/to/file1.ts</file>
 <file>path/to/file2.ts</file>

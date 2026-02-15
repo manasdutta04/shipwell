@@ -167,7 +167,7 @@ export function formatFindingCard(f: Finding, i: number): string {
     lines.push(`     ${f.files.map(file => chalk.cyan(file)).join(dim(", "))}`);
   }
   if (f.description) {
-    lines.push(...wordWrap(f.description, 72, "     ", 3));
+    lines.push(...wordWrap(f.description, 72, "     ", Infinity));
   }
 
   return lines.join("\n");
