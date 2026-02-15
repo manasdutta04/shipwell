@@ -227,5 +227,11 @@ export async function analyzeCommand(operation: Operation, source: string, optio
     } catch (err: any) {
       console.error(`  ${chalk.red("\u2717")} Failed to write report: ${err.message}`);
     }
+  } else {
+    // Hint: export full report
+    console.log(dim(`  Export full report with detailed findings:`));
+    console.log(`  ${chalk.cyan(`shipwell ${operation} ${source} -o report.md`)}`);
+    console.log(`  ${chalk.cyan(`shipwell ${operation} ${source} -o report.json`)}`);
+    console.log();
   }
 }

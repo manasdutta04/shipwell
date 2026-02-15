@@ -12,7 +12,15 @@ function stripAnsi(s: string): string {
 }
 
 function visLen(s: string): number {
-  return stripAnsi(s).length;
+  const plain = stripAnsi(s);
+  let len = 0;
+  for (const ch of plain) {
+    const code = ch.codePointAt(0) || 0;
+    // Most emoji and wide characters occupy 2 terminal columns
+    if (code > 0x1000) len += 2;
+    else len += 1;
+  }
+  return len;
 }
 
 function padR(s: string, w: number): string {
@@ -20,11 +28,41 @@ function padR(s: string, w: number): string {
   return gap > 0 ? s + " ".repeat(gap) : s;
 }
 
-function truncate(s: string, max: number): string {
-  // Collapse newlines and whitespace runs into single spaces
-  const flat = s.replace(/\n/g, " ").replace(/\s+/g, " ").trim();
-  if (flat.length <= max) return flat;
-  return flat.slice(0, max - 1) + "\u2026";
+function stripMarkdown(s: string): string {
+  return s
+    .replace(/\*\*([^*]+)\*\*/g, "$1")   // **bold**
+    .replace(/\*([^*]+)\*/g, "$1")        // *italic*
+    .replace(/`([^`]+)`/g, "$1")          // `code`
+    .replace(/#{1,6}\s*/g, "")            // ### headings
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1"); // [text](url)
+}
+
+function wordWrap(s: string, width: number, indent: string, maxLines: number): string[] {
+  // Clean: collapse whitespace, strip markdown
+  const flat = stripMarkdown(s).replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+  const words = flat.split(" ");
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    if (lines.length >= maxLines) break;
+    if (current.length + word.length + 1 > width) {
+      lines.push(indent + dim(current));
+      current = word;
+    } else {
+      current = current ? `${current} ${word}` : word;
+    }
+  }
+
+  if (current && lines.length < maxLines) {
+    lines.push(indent + dim(current));
+  } else if (lines.length === maxLines && current) {
+    // Append ellipsis to last line
+    const last = lines[lines.length - 1];
+    lines[lines.length - 1] = last + dim("\u2026");
+  }
+
+  return lines;
 }
 
 // ─── Severity colors ────────────────────────────────────────
@@ -75,35 +113,41 @@ export function formatSeverityRow(findings: Finding[]): string {
 }
 
 export function formatSummaryBox(stats: SummaryStats): string {
-  const lines: string[] = [];
-  const W = 58;
-  const inner = W - 4;
+  const W = 54;
+  const bar = dim("\u2502");
+  const pad = (s: string) => {
+    const plain = stripAnsi(s);
+    const gap = W - 2 - plain.length;
+    return gap > 0 ? s + " ".repeat(gap) : s;
+  };
 
-  const sevRow = [
-    stats.critCount > 0 ? `${severityIcon.critical} ${stats.critCount} critical` : null,
-    stats.highCount > 0 ? `${severityIcon.high} ${stats.highCount} high` : null,
-    stats.medCount > 0 ? `${severityIcon.medium} ${stats.medCount} medium` : null,
-    stats.lowCount > 0 ? `${severityIcon.low} ${stats.lowCount} low` : null,
-  ].filter(Boolean).join(dim(" \u00B7 "));
+  const sevParts = [
+    stats.critCount > 0 ? chalk.red(`${stats.critCount} critical`) : null,
+    stats.highCount > 0 ? chalk.hex("#f97316")(`${stats.highCount} high`) : null,
+    stats.medCount > 0 ? chalk.yellow(`${stats.medCount} medium`) : null,
+    stats.lowCount > 0 ? chalk.blue(`${stats.lowCount} low`) : null,
+  ].filter(Boolean);
+
+  const findingsRow = sevParts.length > 0
+    ? `${bold(String(stats.totalFindings))} findings: ${sevParts.join(dim(" / "))}`
+    : `${bold(String(stats.totalFindings))} findings`;
 
   const crossRow = stats.crossFileCount > 0
-    ? `\u27F7  ${stats.crossFileCount} cross-file issues`
+    ? `${accent(String(stats.crossFileCount))} cross-file issues detected`
     : null;
 
-  const statsRow = `\u{1F4C1} ${stats.filesAnalyzed} files \u00B7 ${stats.tokensK}K tokens \u00B7 ${stats.elapsed}s`;
+  const statsRow = `${stats.filesAnalyzed} files analyzed | ${stats.tokensK}K tokens | ${stats.elapsed}s`;
 
+  const lines: string[] = [];
   lines.push(`  ${dim("\u256D" + "\u2500".repeat(W - 2) + "\u256E")}`);
-  lines.push(`  ${dim("\u2502")}  ${padR(`${accent("\u26F5")} ${bold("Analysis Complete")}`, inner)}  ${dim("\u2502")}`);
-  lines.push(`  ${dim("\u2502")}${" ".repeat(W - 2)}${dim("\u2502")}`);
-  if (sevRow) {
-    lines.push(`  ${dim("\u2502")}  ${padR(sevRow, inner)}  ${dim("\u2502")}`);
-  }
+  lines.push(`  ${bar} ${pad(accent("Analysis Complete"))} ${bar}`);
+  lines.push(`  ${bar} ${pad("")} ${bar}`);
+  lines.push(`  ${bar} ${pad(findingsRow)} ${bar}`);
   if (crossRow) {
-    lines.push(`  ${dim("\u2502")}  ${padR(crossRow, inner)}  ${dim("\u2502")}`);
+    lines.push(`  ${bar} ${pad(crossRow)} ${bar}`);
   }
-  lines.push(`  ${dim("\u2502")}${" ".repeat(W - 2)}${dim("\u2502")}`);
-  lines.push(`  ${dim("\u2502")}  ${padR(statsRow, inner)}  ${dim("\u2502")}`);
-  lines.push(`  ${dim("\u256E" + "\u2500".repeat(W - 2) + "\u256F")}`);
+  lines.push(`  ${bar} ${pad(dim(statsRow))} ${bar}`);
+  lines.push(`  ${dim("\u2570" + "\u2500".repeat(W - 2) + "\u256F")}`);
 
   return lines.join("\n");
 }
@@ -123,7 +167,7 @@ export function formatFindingCard(f: Finding, i: number): string {
     lines.push(`     ${f.files.map(file => chalk.cyan(file)).join(dim(", "))}`);
   }
   if (f.description) {
-    lines.push(`     ${dim(truncate(f.description, 120))}`);
+    lines.push(...wordWrap(f.description, 72, "     ", 3));
   }
 
   return lines.join("\n");
