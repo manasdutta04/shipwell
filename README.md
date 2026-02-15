@@ -4,11 +4,13 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
 </p>
 
-# ⛵ Shipwell
+# Shipwell
 
 **Full Codebase Autopilot** — deep cross-file analysis powered by Claude's 1M token context window.
 
 Feed an entire repository into Claude in a single pass. Get security audits, migration plans, refactoring suggestions, documentation, and dependency upgrade paths that understand how your files connect.
+
+**[shipwell.app](https://shipwell.app)** | **[npm](https://www.npmjs.com/package/@shipwellapp/cli)** | **[GitHub](https://github.com/manasdutta04/shipwell)**
 
 ---
 
@@ -16,137 +18,180 @@ Feed an entire repository into Claude in a single pass. Get security audits, mig
 
 Most AI code tools work file-by-file. They miss the big picture — the auth middleware that trusts a header set three packages away, the duplicated validation logic across 12 endpoints, the breaking change that ripples through your entire import graph.
 
-Shipwell ingests your **entire codebase** into Claude's context window and analyzes it as a whole. Cross-file issues that are invisible to file-by-file tools become obvious.
+Shipwell ingests your **entire codebase** into Claude's context window and analyzes it as a whole. Cross-file issues that are invisible to other tools become obvious.
 
-### What it finds
+---
 
-- **Security vulnerabilities** that span multiple files (auth bypass chains, data flow leaks)
+## What It Finds
+
+- **Security vulnerabilities** that span multiple files — auth bypass chains, unsanitized data flows, hardcoded secrets
 - **Migration blockers** with full dependency graphs and ordered change sets
 - **Code duplication** across packages, not just within files
-- **Architecture issues** like circular dependencies and layering violations
+- **Architecture issues** — circular dependencies, layering violations, dead code
 - **Dependency risks** with upgrade paths that account for breaking changes in your code
 
 ---
 
-## Operations
+## Features
 
-| Command | Description |
+| Feature | Description |
 |---------|-------------|
-| `audit` | Security audit — vulnerabilities, auth flaws, data exposure, cryptography issues |
-| `migrate` | Migration plan — ordered changes for framework/library upgrades |
-| `refactor` | Refactor analysis — duplication, dead code, architecture smells |
-| `docs` | Documentation — architecture overview, API docs, data flow diagrams |
-| `upgrade` | Dependency upgrade — outdated deps, security advisories, safe upgrade paths |
+| **Cross-file analysis** | Detects issues spanning multiple files that single-file tools completely miss |
+| **5 analysis modes** | Security audit, migration plan, refactor analysis, docs generation, dependency upgrade |
+| **Real-time streaming** | Findings appear live as Claude analyzes — no waiting for completion |
+| **1M token context** | Hundreds of files ingested in a single prompt, no chunking or context loss |
+| **Actionable output** | Severity scores, before/after metrics, suggested diffs, not just vague suggestions |
+| **Privacy first** | Your API key never touches our servers — passed directly to Anthropic's API |
+| **GitHub integration** | Paste any public GitHub URL — cloned, ingested, and analyzed automatically |
+| **Export results** | Download findings as Markdown for sharing or tracking |
+| **Web + CLI** | Full web dashboard at [shipwell.app](https://shipwell.app) and a terminal CLI |
 
 ---
 
-## Quick Start
+## Analysis Modes
 
-### Web App
+| Mode | What it does |
+|------|-------------|
+| **Security Audit** | Vulnerabilities, auth flaws, data exposure, cryptography issues, cross-file attack chains |
+| **Migration Plan** | Ordered changes for framework/library upgrades with full diffs |
+| **Refactor Analysis** | Duplication, dead code, complexity hotspots, architecture smells |
+| **Documentation** | Architecture overview, API docs, data flow diagrams, module guides |
+| **Dep. Upgrade** | Outdated deps, security advisories, breaking change analysis, safe upgrade paths |
+
+---
+
+## Using the Web App
+
+### 1. Sign in
+
+Go to [shipwell.app](https://shipwell.app) and sign in with Google.
+
+### 2. Connect your API key
+
+Navigate to **Settings** and enter your Anthropic API key. It's stored only in your browser's localStorage and never sent to our servers.
+
+Don't have one? Get it from the [Anthropic Console](https://console.anthropic.com/settings/keys).
+
+### 3. Run an analysis
+
+On the **Analysis** page:
+1. Paste a **GitHub URL** (e.g. `https://github.com/acme/api`) or a local path
+2. Choose an **operation** (Security Audit, Migration, Refactor, Docs, or Dep. Upgrade)
+3. Optionally add **context** to focus the analysis (e.g. "focus on authentication")
+4. Click **Start Analysis**
+
+### 4. View results
+
+Findings stream in real-time as Claude analyzes your code:
+- **Dashboard** — health score gauge, severity distribution bar, most impacted files
+- **Findings tab** — each finding with severity, description, affected files, and suggested diffs
+- **Cross-file graph** — visual map of issues that span multiple files
+- **Metrics tab** — before/after scores for code quality dimensions
+- **Raw output** — full Claude response for reference
+
+Filter by severity or cross-file status. Export results as Markdown when done.
+
+### Demo mode
+
+Visit [shipwell.app/analysis?demo=true](https://shipwell.app/analysis?demo=true) to see a sample analysis without an API key.
+
+---
+
+## Using the CLI
+
+### Install
 
 ```bash
-git clone https://github.com/manasdutta04/shipwell.git
-cd shipwell
-pnpm install
+npm install -g @shipwellapp/cli
 ```
 
-Set up Firebase for authentication — create a `.env.local` in `apps/web/`:
-
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your-key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
-```
-
-Then start the dev server:
+### Authenticate
 
 ```bash
-pnpm dev:web
+shipwell login
 ```
 
-Open [http://localhost:3000](http://localhost:3000), sign in with Google, enter your Anthropic API key in Settings, and run your first analysis.
+This opens your browser to sign in with the same Google account you use on the web app.
 
-### CLI
-
-```bash
-pnpm build
-```
+### Run an analysis
 
 ```bash
-# Security audit
-node apps/cli/dist/index.js audit ./my-repo --api-key sk-ant-...
+# Security audit on a GitHub repo
+shipwell audit https://github.com/acme/api
 
-# Migration plan
-node apps/cli/dist/index.js migrate ./my-repo --target "React 19"
+# Migration plan for a local project
+shipwell migrate ./my-project --target "React 19"
 
 # Refactor analysis
-node apps/cli/dist/index.js refactor ./my-repo
+shipwell refactor ./my-project
 
-# Generate docs
-node apps/cli/dist/index.js docs ./my-repo
+# Generate documentation
+shipwell docs ./my-project
 
 # Dependency upgrade plan
-node apps/cli/dist/index.js upgrade ./my-repo
+shipwell upgrade ./my-project
 ```
 
-Set `ANTHROPIC_API_KEY` as an environment variable to skip the `--api-key` flag:
+### CLI options
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-node apps/cli/dist/index.js audit ./my-repo
+```
+-k, --api-key <key>      Anthropic API key (or set ANTHROPIC_API_KEY env var)
+-m, --model <model>      Claude model to use
+-t, --target <target>    Migration target (for migrate command)
+-c, --context <context>  Additional context to focus the analysis
+-r, --raw                Print raw streaming output
+```
+
+### Example output
+
+```
+$ shipwell audit https://github.com/acme/api
+
+  ⛵ Cloning acme/api...
+  ⛵ Ingesting 342 files (187,420 tokens)
+  ⛵ Analyzing with Claude Sonnet 4.5...
+
+  CRITICAL  SQL injection in src/db/queries.ts:47
+            Unsanitized user input flows to db.raw() via 3 files
+  HIGH      Hardcoded secret in src/config/auth.ts:12
+  HIGH      Missing rate limiting on src/routes/api/*.ts
+
+  ✔ 12 findings (2 critical, 4 high, 3 medium, 3 low)
+  ✔ 3 cross-file issues detected
 ```
 
 ---
 
-## Architecture
+## Supported Models
 
-```
-shipwell/
-├── packages/
-│   └── core/               # @shipwell/core — shared analysis engine
-│       └── src/
-│           ├── ingest/      # File reader, filters, token counter, bundler
-│           ├── prompts/     # Operation-specific prompt templates
-│           ├── engine/      # Anthropic API client with streaming
-│           └── output/      # Streaming XML parser
-├── apps/
-│   ├── web/                 # Next.js 15 web app
-│   │   └── src/
-│   │       ├── app/         # App Router (pages + API routes)
-│   │       ├── components/  # React components
-│   │       └── hooks/       # SSE streaming hook
-│   └── cli/                 # Commander.js CLI
-│       └── src/
-│           ├── index.ts     # Entry point + command registration
-│           └── commands/    # analyze command
-```
+| Model | ID | Notes |
+|-------|----|-------|
+| Claude Sonnet 4.5 | `claude-sonnet-4-5-20250929` | Default — best balance of speed and quality |
+| Claude Opus 4.6 | `claude-opus-4-6` | Most capable, deeper analysis |
+| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` | Fastest, good for quick scans |
 
-### Data Flow
+Select your model in **Settings** on the web app, or pass `--model` to the CLI.
 
-```
-Repository (local path or GitHub URL)
-  → Ingest (read files, filter, estimate tokens, prioritize)
-  → Bundle (XML-structured codebase, smart token budgeting)
-  → Prompt (operation-specific system + user prompt)
-  → Claude API (streaming, up to 200K context)
-  → Parse (streaming XML → findings, metrics, diffs)
-  → Present (Web: real-time SSE | CLI: colored terminal output)
-```
+---
 
-### How Ingestion Works
+## How It Works
 
-1. **Read** — Recursively reads all files, respecting `.gitignore`
-2. **Filter** — Skips binaries, lock files, `node_modules`, build artifacts (80+ supported file types)
-3. **Prioritize** — Scores files by importance: configs (100) > entry points (90) > core logic (70) > tests (30)
-4. **Budget** — Fits as many files as possible within the token budget, highest priority first
-5. **Bundle** — Wraps files in XML: `<file path="src/auth.ts" language="typescript">...</file>`
+1. **Ingest** — Recursively reads all files, respects `.gitignore`, skips binaries and lock files (80+ file types supported)
+2. **Prioritize** — Scores files by importance: configs > entry points > core logic > tests
+3. **Bundle** — Fits as many files as possible within the token budget, highest priority first
+4. **Analyze** — Sends the entire bundled codebase to Claude with an operation-specific prompt
+5. **Stream** — Findings, metrics, and diffs are parsed and displayed in real-time as Claude responds
 
-### Why XML?
+Cross-file issues are automatically flagged when a finding references multiple files — these are the issues that file-by-file tools miss entirely.
 
-Claude excels at structured XML parsing. The XML format lets the model precisely reference file paths and produce structured output (findings, metrics, diffs) that can be parsed in real-time as it streams.
+---
+
+## Security & Privacy
+
+- **Your API key stays in your browser** — it's stored in localStorage and passed directly to the Anthropic API. Our servers never see it.
+- **No database** — analysis results exist only in your browser session. Nothing is stored server-side.
+- **Google auth only** — no password storage, Firebase authentication.
+- **Open source** — inspect the code yourself.
 
 ---
 
@@ -154,107 +199,11 @@ Claude excels at structured XML parsing. The XML format lets the model precisely
 
 | Layer | Technology |
 |-------|-----------|
-| Monorepo | pnpm workspaces + Turborepo |
-| Language | TypeScript 5.7+ |
 | AI | Anthropic Claude API (Sonnet 4.5 / Opus 4.6 / Haiku 4.5) |
-| Web | Next.js 15, React 19, Tailwind CSS v4 |
+| Web | Next.js 15, React 19, Tailwind CSS v4, Framer Motion |
 | Auth | Firebase (Google sign-in) |
-| Animations | Framer Motion |
-| Icons | Lucide React |
 | CLI | Commander.js, Ora, Chalk |
-
----
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `ANTHROPIC_API_KEY` | Anthropic API key (CLI) | CLI only |
-| `SHIPWELL_MODEL` | Default Claude model | No |
-| `NEXT_PUBLIC_FIREBASE_*` | Firebase config (6 vars) | Web only |
-
-### Supported Models
-
-| Model | ID |
-|-------|----|
-| Claude Sonnet 4.5 (default) | `claude-sonnet-4-5-20250929` |
-| Claude Opus 4.6 | `claude-opus-4-6` |
-| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` |
-
-### CLI Flags
-
-```
--k, --api-key <key>      Anthropic API key
--m, --model <model>      Claude model to use
--t, --target <target>    Migration target (for migrate)
--c, --context <context>  Additional context for analysis
--r, --raw                Print raw streaming output
-```
-
----
-
-## Development
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build everything
-pnpm build
-
-# Dev mode (web app with hot reload)
-pnpm dev:web
-
-# Build individual packages
-pnpm build:core
-pnpm build:web
-pnpm build:cli
-```
-
-### Project Structure
-
-- **`packages/core`** — Zero-dependency analysis engine (except Anthropic SDK, glob, ignore, simple-git). Shared between web and CLI.
-- **`apps/web`** — Next.js app. API route proxies requests to core engine via SSE. Client renders streaming results.
-- **`apps/cli`** — Thin wrapper around core engine with terminal formatting.
-
----
-
-## How It Works (Under the Hood)
-
-### Streaming Analysis
-
-The web app uses Server-Sent Events (SSE) over POST:
-
-1. Client sends repo path + operation + API key to `/api/analyze`
-2. Server ingests the repo, bundles it, and starts streaming from Claude
-3. Each chunk is forwarded to the client as an SSE event
-4. Client-side `StreamingParser` extracts findings and metrics in real-time
-5. UI updates live — findings appear as Claude discovers them
-
-### Cross-File Detection
-
-Findings that reference multiple files are flagged as **cross-file issues**. These are the findings that file-by-file tools miss entirely — auth chains, data flow vulnerabilities, shared state bugs, and import cycles.
-
-### Token Budgeting
-
-For repositories larger than the context window, Shipwell uses smart prioritization:
-
-- Configuration files get the highest priority (they define the project)
-- Entry points and API routes come next (they define behavior)
-- Core source files follow (business logic)
-- Tests and docs get lowest priority (useful but expendable)
-
-Files are included in priority order until the token budget is exhausted.
-
----
-
-## Security
-
-- **API keys never touch our servers** — in the web app, your Anthropic API key is stored in your browser's localStorage and sent directly to the Anthropic API via the Next.js API route
-- **Firebase auth** — Google sign-in only, no password storage
-- **No database** — analysis results exist only in your browser session
+| Monorepo | pnpm workspaces + Turborepo, TypeScript |
 
 ---
 
