@@ -157,6 +157,7 @@ for (const op of operations) {
     .option("-r, --raw", "Also print raw streaming output")
     .option("-y, --yes", "Skip cost confirmation prompt")
     .option("-o, --output <path>", "Export report to file (.md or .json)")
+    .option("--create-pr", "Create a GitHub PR with auto-fixes after analysis")
     .action((source, options) => {
       analyzeCommand(op, source, options);
     });

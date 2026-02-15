@@ -7,6 +7,7 @@ import { estimateCost, formatCost } from "../lib/pricing.js";
 import { promptConfirmation } from "../lib/prompts.js";
 import { formatSummaryBox, formatFindingCard, formatMetric } from "../lib/formatters.js";
 import { writeReport, type ExportData } from "../lib/export.js";
+import { resolveRepoUrl, createFixPR } from "../lib/github.js";
 
 export interface AnalyzeOptions {
   apiKey?: string;
@@ -16,6 +17,7 @@ export interface AnalyzeOptions {
   raw?: boolean;
   yes?: boolean;
   output?: string;
+  createPr?: boolean;
 }
 
 const accent = chalk.hex("#6366f1");
@@ -200,6 +202,30 @@ export async function analyzeCommand(operation: Operation, source: string, optio
     elapsed,
   }));
   console.log();
+
+  // PR creation flow
+  const fixableCount = allFindings.filter(f => f.diff).length;
+  if (fixableCount > 0) {
+    const shouldCreate = options.createPr || await promptConfirmation(`Create Fix PR? (${fixableCount} fixable)`);
+    if (shouldCreate) {
+      const prSpinner = ora({ text: "Resolving repository...", color: "cyan", prefixText: "  " }).start();
+      try {
+        const repoUrl = await resolveRepoUrl(source);
+        prSpinner.succeed(`Repository: ${accent(repoUrl)}`);
+
+        const createSpinner = ora({ text: `Creating PR with ${fixableCount} fixes...`, color: "cyan", prefixText: "  " }).start();
+        const result = await createFixPR({ repoUrl, operation, findings: allFindings });
+        createSpinner.succeed(`PR #${result.prNumber} created`);
+
+        console.log(`  ${dim("→")} ${chalk.cyan(result.prUrl)}`);
+        console.log(`  ${dim(`Applied: ${result.appliedCount} · Skipped: ${result.skippedCount} · Failed: ${result.failedCount}`)}`);
+        console.log();
+      } catch (err: any) {
+        prSpinner.fail(err.message);
+        console.log();
+      }
+    }
+  }
 
   // Export report if --output specified
   if (options.output) {
