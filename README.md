@@ -43,6 +43,7 @@ Shipwell ingests your **entire codebase** into Claude's context window and analy
 | **Actionable output** | Severity scores, before/after metrics, suggested diffs, not just vague suggestions |
 | **Privacy first** | Your API key never touches our servers — passed directly to Anthropic's API |
 | **GitHub integration** | Paste any public GitHub URL — cloned, ingested, and analyzed automatically |
+| **Auto-fix PRs** | Create GitHub PRs with suggested fixes via the ShipwellHQ GitHub App |
 | **Export results** | Download findings as Markdown for sharing or tracking |
 | **Web + CLI** | Full web dashboard at [shipwell.app](https://shipwell.app) and a terminal CLI |
 
@@ -132,6 +133,23 @@ shipwell docs ./my-project
 shipwell upgrade ./my-project
 ```
 
+### Create fix PRs
+
+After analysis, if fixable findings are detected, the CLI can create a GitHub PR with the suggested fixes — authored by the **ShipwellHQ** GitHub App.
+
+```bash
+# Analyze and create a PR with fixes
+shipwell audit https://github.com/acme/api --create-pr
+
+# Skip all prompts
+shipwell audit https://github.com/acme/api --create-pr --yes
+
+# Works with local repos too (resolves the GitHub remote automatically)
+shipwell audit ./my-project --create-pr
+```
+
+> **Prerequisite:** The [ShipwellHQ GitHub App](https://github.com/apps/shipwellhq) must be installed on the target repository.
+
 ### More commands
 
 ```bash
@@ -156,6 +174,7 @@ shipwell config
 -r, --raw                Print raw streaming output
 -y, --yes                Skip cost confirmation prompt
 -o, --output <path>      Export report to file (.md or .json)
+--create-pr              Create a GitHub PR with auto-fixes after analysis
 ```
 
 ### Export reports
@@ -202,6 +221,12 @@ $ shipwell audit https://github.com/acme/api
   │ 3 cross-file issues detected                           │
   │ 342 files analyzed | 187K tokens | 23.4s               │
   ╰────────────────────────────────────────────────────────╯
+
+  Create Fix PR? (8 fixable) [Y/n] y
+  ✔ Repository: https://github.com/acme/api
+  ✔ PR #42 created
+  → https://github.com/acme/api/pull/42
+  Applied: 8 · Skipped: 2 · Failed: 2
 
   Export full report with detailed findings:
   shipwell audit https://github.com/acme/api -o report.md
