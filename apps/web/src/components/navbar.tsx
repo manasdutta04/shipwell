@@ -7,9 +7,11 @@ import { Ship, User, LogOut, ChevronDown, Key, ArrowUpRight } from "lucide-react
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { useAuth } from "./auth-provider";
+import { useApiKey } from "@/hooks/use-api-key";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const { isConnected: hasApiKey, loaded: apiKeyLoaded } = useApiKey();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -24,7 +26,6 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isAnalysis = pathname === "/" && !!user;
   const isLanding = pathname === "/" && !user;
 
   return (
@@ -43,11 +44,21 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-3">
-          {isAnalysis && user && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 text-[11px] font-medium text-success ring-1 ring-success/20 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-success" />
-              Connected
-            </div>
+          {user && apiKeyLoaded && (
+            hasApiKey ? (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 text-[11px] font-medium text-success ring-1 ring-success/20 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                Connected
+              </div>
+            ) : (
+              <Link
+                href="/settings"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-danger/10 text-[11px] font-medium text-danger ring-1 ring-danger/20 font-mono"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-danger" />
+                API Key Not Set
+              </Link>
+            )
           )}
 
           {!user && (
