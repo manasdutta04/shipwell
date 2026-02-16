@@ -520,7 +520,7 @@ export default function DocsPage() {
                     <div className="text-text-dim text-[12px] mb-3">v0.4.2</div>
                     <div className="text-text text-sm">Welcome back, <span className="text-accent">Manas</span>!</div>
                     <div className="mt-3 flex items-center gap-2 text-[12px]">
-                      <span className="text-text-muted">Claude Sonnet 4.5</span>
+                      <span className="text-text-muted">Claude Opus 4.6</span>
                       <span className="text-text-dim">&middot;</span>
                       <span className="text-success">&#9679;</span>
                       <span className="text-text-dim">API Key</span>
