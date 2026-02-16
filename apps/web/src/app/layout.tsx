@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Montserrat, IBM_Plex_Mono, EB_Garamond } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { ConsentManager } from "@/components/consent-manager";
+import { MobileGate } from "@/components/mobile-gate";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,9 +50,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} ${montserrat.variable} ${ibmPlexMono.variable} ${ebGaramond.variable} min-h-screen antialiased`}>
-        <ConsentManager>
-          <AuthProvider>{children}</AuthProvider>
-        </ConsentManager>
+        <MobileGate>
+          <ConsentManager>
+            <AuthProvider>{children}</AuthProvider>
+          </ConsentManager>
+        </MobileGate>
       </body>
     </html>
   );
