@@ -153,6 +153,9 @@ shipwell audit ./my-project --create-pr
 ### More commands
 
 ```bash
+# Show all available commands and flags
+shipwell help
+
 # Interactive guided mode
 shipwell interactive
 
@@ -162,6 +165,9 @@ shipwell delete-key
 # View config / account info
 shipwell whoami
 shipwell config
+
+# Update CLI to latest version
+shipwell update
 ```
 
 ### CLI options

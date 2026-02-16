@@ -6,8 +6,7 @@ All notable changes to Shipwell are documented here.
 
 ## 0.4.2
 
-- Added `shipwell help` command with full reference for all commands, flags, and examples
-- Added `shipwell help <command>` for per-command detailed help
+- Added `shipwell help` command listing all available commands and flags
 - Consolidated `/cli` and `/github-app` pages into `/docs` with `#hash` navigation
 - Minimal footer on `/docs`, `/profile`, `/settings`, `/privacy`, `/terms`
 - Cleaned terminal demo in docs for better readability

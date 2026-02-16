@@ -159,6 +159,7 @@ const commands = [
   { cmd: "interactive", icon: Terminal, desc: "Launch interactive guided mode" },
   { cmd: "models", icon: Cpu, desc: "List all available Claude models" },
   { cmd: "update", icon: RefreshCw, desc: "Update CLI to the latest version" },
+  { cmd: "help", icon: BookOpen, desc: "List all available commands and flags" },
 ];
 
 const cliFlags = [
