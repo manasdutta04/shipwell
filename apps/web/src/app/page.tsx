@@ -85,25 +85,46 @@ function HeroTextOverlay() {
   }, [displayed, phase, word]);
 
   return (
-    <div className="absolute top-48 md:top-72 left-8 z-10">
-      <h1
-        className="text-6xl md:text-7xl lg:text-8xl mb-1"
-        style={{
-          fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-          color: "rgb(9, 9, 11)",
-          WebkitTextStroke: "4px #6366f1",
-          paintOrder: "stroke fill",
-          letterSpacing: "0.06em",
-        }}
-      >
-        {displayed}
-        <span className="cursor-blink text-accent">|</span>
-      </h1>
-      <p className="text-text font-mono text-sm md:text-base max-w-xs tracking-widest mt-6">
-        Full Codebase Autopilot.
-        <br />
-        Powered by Opus 4.6
+    <div className="absolute top-44 md:top-64 left-8 md:left-12 z-10">
+      {/* Label chip */}
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent/20 bg-accent/5 mb-6">
+        <span className="text-[11px] text-accent font-medium tracking-wider" style={{ fontFamily: "Menlo, Monaco, 'Courier New', monospace" }}>
+          Not backed by{" "}
+          <svg className="inline-block w-3.5 h-3.5 -mt-px mx-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="24" height="24" rx="5" fill="#F26522" />
+            <path d="M8 4L12 12M16 4L12 12M12 12V20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {" "}Combinator
+        </span>
+      </div>
+
+      {/* Typing headline */}
+      <div className="flex items-baseline gap-2 md:gap-3">
+        <span className="text-accent/40 text-3xl md:text-4xl lg:text-5xl font-extralight select-none" style={{ fontFamily: "Menlo, Monaco, 'Courier New', monospace" }}>{">"}</span>
+        <h1
+          className="text-5xl md:text-7xl lg:text-8xl font-bold"
+          style={{
+            fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+            letterSpacing: "0.02em",
+          }}
+        >
+          <span className="gradient-text">{displayed}</span>
+          <span className="cursor-blink text-accent/60 font-extralight">|</span>
+        </h1>
+      </div>
+
+      {/* Subtitle */}
+      <p className="mt-5 text-[15px] md:text-base text-text-muted/80 tracking-wide max-w-sm leading-relaxed" style={{ fontFamily: "Menlo, Monaco, 'Courier New', monospace" }}>
+        Full codebase autopilot powered
+        <br className="hidden md:block" />
+        {" "}by <span className="text-text font-medium">Claude Opus 4.6</span>
       </p>
+
+      {/* Accent line */}
+      <div className="mt-6 flex items-center gap-3">
+        <div className="h-px w-12 bg-gradient-to-r from-accent/60 to-transparent" />
+        <span className="text-[11px] text-text-dim tracking-widest uppercase" style={{ fontFamily: "Menlo, Monaco, 'Courier New', monospace" }}>1M token context</span>
+      </div>
     </div>
   );
 }
